@@ -182,7 +182,7 @@
 
         const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         const urlParams = new URLSearchParams(window.location.search);
-        const strutturaId = urlParams.get('struttura_id') || "hotel_miramare_scacchi" || "appartamento_scacchi";
+        const strutturaId = urlParams.get('id') || urlParams.get('struttura_id') || "hotel_miramare_scacchi";
 
         const nomeSalvato = localStorage.getItem("turista_nome");
         const isReturning = !!nomeSalvato;
