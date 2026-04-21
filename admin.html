@@ -1,0 +1,2247 @@
+<!DOCTYPE html>
+<html lang="it">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Concierge24 — Pannello</title>
+    <link rel="icon" type="image/png" href="logo.png">
+    <link
+        href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap"
+        rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        :root {
+            --ink: #0f0e0c;
+            --ink2: #3a3630;
+            --ink3: #6b6560;
+            --sand: #f7f3ed;
+            --sand2: #ece6dd;
+            --sand3: #ddd5c8;
+            --sea: #1a6b7a;
+            --sea2: #0d4a57;
+            --sea3: #e8f4f6;
+            --green: #2d7a4f;
+            --green2: #e8f5ee;
+            --red: #c0392b;
+            --red2: #fdf0ee;
+            --gold: #c49535;
+            --gold2: #fdf6e3;
+            --r: 10px;
+            --r2: 16px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--sand);
+            color: var(--ink);
+            min-height: 100vh;
+        }
+
+        h1,
+        h2,
+        h3 {
+            font-family: 'DM Serif Display', serif;
+            font-weight: 400;
+        }
+
+        #login-screen {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, var(--sea2), var(--sea));
+        }
+
+        .login-card {
+            background: white;
+            border-radius: var(--r2);
+            padding: 48px 40px;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 24px 64px rgba(0, 0, 0, 0.18);
+        }
+
+        .login-logo {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .login-logo img {
+            width: 160px;
+            height: auto;
+            border-radius: var(--r);
+            margin-bottom: 8px;
+        }
+
+        .login-logo p {
+            color: var(--ink3);
+            font-size: 0.88rem;
+        }
+
+        #blocked-screen {
+            min-height: 100vh;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, var(--sea2), var(--sea));
+        }
+
+        .blocked-card {
+            background: white;
+            border-radius: var(--r2);
+            padding: 48px 40px;
+            width: 100%;
+            max-width: 460px;
+            box-shadow: 0 24px 64px rgba(0, 0, 0, 0.18);
+            text-align: center;
+        }
+
+        .blocked-card img {
+            width: 120px;
+            height: auto;
+            border-radius: var(--r);
+            margin-bottom: 24px;
+        }
+
+        .blocked-card h2 {
+            font-size: 1.6rem;
+            color: var(--ink);
+            margin-bottom: 12px;
+        }
+
+        .blocked-card p {
+            color: var(--ink3);
+            font-size: 0.92rem;
+            line-height: 1.6;
+            margin-bottom: 8px;
+        }
+
+        .plans-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 12px;
+            margin: 24px 0;
+        }
+
+        .plan-card {
+            border: 1.5px solid var(--sand3);
+            border-radius: var(--r2);
+            padding: 16px 12px;
+            text-align: center;
+            position: relative;
+        }
+
+        .plan-card.featured {
+            border-color: var(--sea);
+            border-width: 2px;
+        }
+
+        .plan-feat-badge {
+            position: absolute;
+            top: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--sea);
+            color: white;
+            font-size: 10px;
+            font-weight: 600;
+            padding: 2px 10px;
+            border-radius: 99px;
+            white-space: nowrap;
+        }
+
+        .plan-name {
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--ink3);
+            margin-bottom: 6px;
+        }
+
+        .plan-price {
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: var(--ink);
+        }
+
+        .plan-price span {
+            font-size: 0.75rem;
+            color: var(--ink3);
+            font-weight: 400;
+        }
+
+        .plan-apts {
+            font-size: 0.78rem;
+            color: var(--ink3);
+            margin: 4px 0 10px;
+        }
+
+        .plan-btn {
+            display: block;
+            padding: 9px 0;
+            background: var(--sea);
+            color: white;
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 0.82rem;
+            font-weight: 500;
+        }
+
+        .blocked-logout {
+            margin-top: 16px;
+            font-size: 0.82rem;
+            color: var(--ink3);
+        }
+
+        .blocked-logout a {
+            color: var(--sea);
+            cursor: pointer;
+            text-decoration: underline;
+        }
+
+        .field {
+            margin-bottom: 18px;
+        }
+
+        .field label {
+            display: block;
+            font-size: 0.82rem;
+            font-weight: 500;
+            color: var(--ink2);
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .field input,
+        .field textarea,
+        .field select {
+            width: 100%;
+            padding: 11px 14px;
+            border: 1.5px solid var(--sand3);
+            border-radius: var(--r);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.95rem;
+            background: var(--sand);
+            color: var(--ink);
+            outline: none;
+            transition: border-color .2s;
+        }
+
+        .field input:focus,
+        .field textarea:focus,
+        .field select:focus {
+            border-color: var(--sea);
+            background: white;
+        }
+
+        .field textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            padding: 11px 20px;
+            border-radius: var(--r);
+            border: none;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all .2s;
+        }
+
+        .btn-primary {
+            background: var(--sea);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--sea2);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-secondary {
+            background: var(--sand2);
+            color: var(--ink2);
+        }
+
+        .btn-secondary:hover {
+            background: var(--sand3);
+        }
+
+        .btn-danger {
+            background: var(--red2);
+            color: var(--red);
+        }
+
+        .btn-danger:hover {
+            background: #f9d9d5;
+        }
+
+        .btn-success {
+            background: var(--green2);
+            color: var(--green);
+        }
+
+        .btn-success:hover {
+            background: #cfe9da;
+        }
+
+        .btn-full {
+            width: 100%;
+            justify-content: center;
+            padding: 13px;
+        }
+
+        .msg {
+            padding: 10px 14px;
+            border-radius: var(--r);
+            font-size: 0.88rem;
+            margin-bottom: 14px;
+            display: none;
+        }
+
+        .msg.error {
+            background: var(--red2);
+            color: var(--red);
+            display: block;
+        }
+
+        .msg.success {
+            background: var(--green2);
+            color: var(--green);
+            display: block;
+        }
+
+        #app {
+            display: none;
+            min-height: 100vh;
+        }
+
+        #admin-banner {
+            display: none;
+            background: #1a1612;
+            color: #f7f3ed;
+            padding: 8px 24px;
+            font-size: 0.82rem;
+            text-align: center;
+        }
+
+        #admin-banner strong {
+            color: var(--gold);
+        }
+
+        .admin-agency-select {
+            background: #2a2420;
+            color: white;
+            border: 1px solid #3a3430;
+            border-radius: 6px;
+            padding: 4px 10px;
+            font-size: 0.82rem;
+            margin-left: 12px;
+            cursor: pointer;
+        }
+
+        #trial-banner {
+            display: none;
+            background: var(--gold2);
+            border-bottom: 1px solid #e8d5a0;
+            padding: 10px 24px;
+        }
+
+        .trial-inner {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .trial-text {
+            font-size: 0.88rem;
+            color: #7a5c00;
+        }
+
+        .trial-days-badge {
+            display: inline-block;
+            background: var(--gold);
+            color: white;
+            padding: 2px 10px;
+            border-radius: 99px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            margin-left: 6px;
+        }
+
+        .trial-btn {
+            padding: 7px 16px;
+            border-radius: 8px;
+            font-size: 0.82rem;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            font-family: 'DM Sans', sans-serif;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            background: var(--sea);
+            color: white;
+        }
+
+        .topbar {
+            background: var(--sea2);
+            color: white;
+            padding: 0 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 58px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .topbar-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .topbar-user {
+            font-size: 0.85rem;
+            opacity: 0.8;
+        }
+
+        .btn-logout {
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            padding: 7px 14px;
+            border-radius: 8px;
+            border: none;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.82rem;
+            cursor: pointer;
+        }
+
+        .btn-logout:hover {
+            background: rgba(255, 255, 255, 0.25);
+        }
+
+        .layout {
+            display: flex;
+            min-height: calc(100vh - 58px);
+        }
+
+        .sidebar {
+            width: 230px;
+            min-width: 230px;
+            background: white;
+            border-right: 1px solid var(--sand2);
+            position: sticky;
+            top: 58px;
+            height: calc(100vh - 58px);
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar-nav {
+            flex: 1;
+            padding: 20px 0;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 11px 20px;
+            font-size: 0.9rem;
+            color: var(--ink2);
+            cursor: pointer;
+            transition: all .15s;
+            border-left: 3px solid transparent;
+        }
+
+        .nav-item:hover {
+            background: var(--sand);
+            color: var(--ink);
+        }
+
+        .nav-item.active {
+            background: var(--sea3);
+            color: var(--sea2);
+            font-weight: 500;
+            border-left-color: var(--sea);
+        }
+
+        .nav-icon {
+            font-size: 16px;
+            width: 20px;
+            text-align: center;
+        }
+
+        .nav-section {
+            padding: 16px 20px 6px;
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--ink3);
+            font-weight: 500;
+        }
+
+        .plan-badge-sidebar {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 99px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            margin-left: 6px;
+            background: var(--sea3);
+            color: var(--sea2);
+        }
+
+        .upgrade-pill {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 12px;
+            background: linear-gradient(135deg, #fdf6e3, #fdf0c0);
+            border: 1px solid #e8d5a0;
+            border-radius: var(--r);
+            margin: 0 12px 12px;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .upgrade-pill-text {
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: #7a5c00;
+        }
+
+        .sidebar-agency {
+            padding: 16px;
+            border-top: 1px solid var(--sand2);
+            background: var(--sand);
+        }
+
+        .agency-logo-wrap {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .agency-logo-img {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            object-fit: cover;
+            border: 1px solid var(--sand3);
+        }
+
+        .agency-logo-placeholder {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            background: var(--sea3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+
+        .agency-name {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--ink2);
+            line-height: 1.2;
+        }
+
+        .agency-plan {
+            font-size: 0.72rem;
+            color: var(--ink3);
+        }
+
+        .main {
+            flex: 1;
+            padding: 32px;
+            max-width: 960px;
+        }
+
+        .page {
+            display: none;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        .page-header {
+            margin-bottom: 28px;
+        }
+
+        .page-header h2 {
+            font-size: 1.8rem;
+            color: var(--ink);
+        }
+
+        .page-header p {
+            color: var(--ink3);
+            margin-top: 4px;
+            font-size: 0.9rem;
+        }
+
+        .strutture-grid {
+            display: grid;
+            gap: 14px;
+        }
+
+        .struttura-card {
+            background: white;
+            border-radius: var(--r2);
+            border: 1px solid var(--sand2);
+            padding: 20px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            transition: all .2s;
+        }
+
+        .struttura-card:hover {
+            border-color: var(--sea);
+            box-shadow: 0 4px 16px rgba(26, 107, 122, 0.1);
+        }
+
+        .struttura-info h3 {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--ink);
+            font-family: 'DM Sans', sans-serif;
+        }
+
+        .struttura-info p {
+            font-size: 0.82rem;
+            color: var(--ink3);
+            margin-top: 2px;
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .tipo-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 99px;
+            font-size: 0.72rem;
+            font-weight: 600;
+        }
+
+        .tipo-hotel {
+            background: #e8f4f6;
+            color: var(--sea2);
+        }
+
+        .tipo-appartamento {
+            background: #e8f5ee;
+            color: var(--green);
+        }
+
+        .tipo-bb {
+            background: #fdf6e3;
+            color: #7a5c00;
+        }
+
+        .apt-badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 99px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .badge-active {
+            background: var(--green2);
+            color: var(--green);
+        }
+
+        .badge-inactive {
+            background: var(--sand2);
+            color: var(--ink3);
+        }
+
+        .struttura-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 48px 24px;
+            color: var(--ink3);
+        }
+
+        .empty-state p {
+            margin-bottom: 16px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .form-grid .full {
+            grid-column: 1/-1;
+        }
+
+        .section-label {
+            font-size: 0.82rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--ink3);
+            margin-bottom: 14px;
+        }
+
+        .ai-bar {
+            background: linear-gradient(135deg, var(--sea3), #f0fafb);
+            border: 1px solid #b8dde5;
+            border-radius: var(--r2);
+            padding: 16px 20px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .ai-bar-icon {
+            font-size: 20px;
+        }
+
+        .ai-bar-text {
+            flex: 1;
+            font-size: 0.88rem;
+            color: var(--sea2);
+        }
+
+        .ai-bar-text strong {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 2px;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid var(--sand3);
+            border-top-color: var(--sea);
+            border-radius: 50%;
+            animation: spin .7s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .kb-list {
+            display: grid;
+            gap: 8px;
+        }
+
+        .kb-item {
+            background: var(--sand);
+            border-radius: var(--r);
+            padding: 12px 14px;
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+        }
+
+        .kb-item-cat {
+            min-width: 90px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: var(--sea2);
+            padding-top: 1px;
+        }
+
+        .kb-item-text {
+            flex: 1;
+            font-size: 0.88rem;
+            color: var(--ink2);
+            line-height: 1.5;
+        }
+
+        .kb-item-del {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--ink3);
+            font-size: 18px;
+            padding: 0;
+            line-height: 1;
+            transition: color .15s;
+        }
+
+        .kb-item-del:hover {
+            color: var(--red);
+        }
+
+        .unita-grid {
+            display: grid;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .unita-item {
+            background: var(--sand);
+            border-radius: var(--r);
+            padding: 12px 14px;
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+        }
+
+        .unita-icon {
+            font-size: 18px;
+            flex-shrink: 0;
+            width: 28px;
+            text-align: center;
+        }
+
+        .unita-info {
+            flex: 1;
+        }
+
+        .unita-nome {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--ink);
+        }
+
+        .unita-tipo {
+            font-size: 0.75rem;
+            color: var(--ink3);
+            margin-top: 2px;
+        }
+
+        .unita-del {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--ink3);
+            font-size: 18px;
+            padding: 0;
+            line-height: 1;
+            transition: color .15s;
+        }
+
+        .unita-del:hover {
+            color: var(--red);
+        }
+
+        .qr-container {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .qr-container img {
+            border-radius: var(--r);
+            border: 1px solid var(--sand2);
+            width: 200px;
+            height: 200px;
+        }
+
+        .qr-url {
+            font-size: 0.78rem;
+            color: var(--ink3);
+            margin-top: 8px;
+            word-break: break-all;
+        }
+
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 14, 12, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 200;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity .2s;
+        }
+
+        .modal-overlay.open {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .modal {
+            background: white;
+            border-radius: var(--r2);
+            padding: 32px;
+            width: 100%;
+            max-width: 640px;
+            max-height: 90vh;
+            overflow-y: auto;
+            transform: translateY(16px);
+            transition: transform .2s;
+        }
+
+        .modal-overlay.open .modal {
+            transform: translateY(0);
+        }
+
+        .modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 24px;
+        }
+
+        .modal-header h3 {
+            font-size: 1.3rem;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--ink3);
+            line-height: 1;
+        }
+
+        .modal-footer {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 24px;
+            padding-top: 20px;
+            border-top: 1px solid var(--sand2);
+        }
+
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid var(--sand2);
+            margin-bottom: 24px;
+            overflow-x: auto;
+        }
+
+        .tab {
+            padding: 10px 16px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--ink3);
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all .15s;
+            margin-bottom: -1px;
+            white-space: nowrap;
+        }
+
+        .tab.active {
+            color: var(--sea);
+            border-bottom-color: var(--sea);
+        }
+
+        .tab-panel {
+            display: none;
+        }
+
+        .tab-panel.active {
+            display: block;
+        }
+
+        .piano-current {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 16px 20px;
+            background: var(--sea3);
+            border-radius: var(--r2);
+            margin-bottom: 20px;
+            border: 1px solid #b8dde5;
+        }
+
+        .piano-current-icon {
+            font-size: 28px;
+        }
+
+        .piano-current-info h3 {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--sea2);
+        }
+
+        .piano-current-info p {
+            font-size: 0.82rem;
+            color: var(--sea);
+            margin-top: 2px;
+        }
+
+        .upgrade-grid {
+            display: grid;
+            gap: 10px;
+        }
+
+        .upgrade-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 16px;
+            border: 1px solid var(--sand3);
+            border-radius: var(--r2);
+            transition: all .2s;
+        }
+
+        .upgrade-row:hover {
+            border-color: var(--sea);
+        }
+
+        .upgrade-row.current {
+            border-color: var(--green);
+            background: var(--green2);
+        }
+
+        .upgrade-info h4 {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--ink);
+        }
+
+        .upgrade-info p {
+            font-size: 0.78rem;
+            color: var(--ink3);
+        }
+
+        .support-card {
+            background: white;
+            border-radius: var(--r2);
+            border: 1px solid var(--sand2);
+            padding: 28px;
+            max-width: 500px;
+        }
+
+        .support-header {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 24px;
+        }
+
+        .support-logo {
+            width: 56px;
+            height: 56px;
+            border-radius: var(--r);
+            object-fit: cover;
+        }
+
+        .contact-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--sand2);
+        }
+
+        .contact-row:last-child {
+            border-bottom: none;
+        }
+
+        .contact-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            flex-shrink: 0;
+            background: var(--sea3);
+        }
+
+        .contact-label {
+            font-size: 0.78rem;
+            color: var(--ink3);
+            margin-bottom: 2px;
+        }
+
+        .contact-value {
+            font-size: 0.92rem;
+            color: var(--ink);
+            font-weight: 500;
+        }
+
+        .contact-value a {
+            color: var(--sea);
+            text-decoration: none;
+        }
+
+        .logo-upload-area {
+            border: 2px dashed var(--sand3);
+            border-radius: var(--r2);
+            padding: 24px;
+            text-align: center;
+            cursor: pointer;
+            transition: border-color .2s;
+            margin-bottom: 16px;
+            position: relative;
+        }
+
+        .logo-upload-area:hover {
+            border-color: var(--sea);
+        }
+
+        .logo-preview {
+            width: 80px;
+            height: 80px;
+            border-radius: var(--r);
+            object-fit: cover;
+            margin: 0 auto 10px;
+            display: block;
+        }
+
+        .admin-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-bottom: 28px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: var(--r2);
+            border: 1px solid var(--sand2);
+            padding: 20px;
+            text-align: center;
+        }
+
+        .stat-num {
+            font-size: 2rem;
+            font-weight: 600;
+            color: var(--sea2);
+        }
+
+        .stat-label {
+            font-size: 0.82rem;
+            color: var(--ink3);
+            margin-top: 4px;
+        }
+
+        .agenzie-table {
+            background: white;
+            border-radius: var(--r2);
+            border: 1px solid var(--sand2);
+            overflow: hidden;
+        }
+
+        .table-header {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr auto;
+            gap: 16px;
+            padding: 12px 20px;
+            background: var(--sand2);
+            font-size: 0.78rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--ink3);
+        }
+
+        .table-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr auto;
+            gap: 16px;
+            padding: 14px 20px;
+            border-top: 1px solid var(--sand2);
+            align-items: center;
+            font-size: 0.88rem;
+            transition: background .15s;
+        }
+
+        .table-row:hover {
+            background: var(--sand);
+        }
+
+        #toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            z-index: 999;
+            background: var(--ink);
+            color: white;
+            padding: 12px 20px;
+            border-radius: var(--r);
+            font-size: 0.88rem;
+            transform: translateY(80px);
+            opacity: 0;
+            transition: all .3s;
+            max-width: 320px;
+        }
+
+        #toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        #toast.success {
+            background: var(--green);
+        }
+
+        #toast.error {
+            background: var(--red);
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- LOGIN -->
+    <div id="login-screen">
+        <div class="login-card">
+            <div class="login-logo"><img src="logo.png" alt="Concierge24">
+                <p>Pannello di gestione</p>
+            </div>
+            <div id="login-msg" class="msg"></div>
+            <div class="field"><label>Email</label><input type="email" id="login-email" placeholder="tua@email.com"
+                    autocomplete="email"></div>
+            <div class="field"><label>Password</label><input type="password" id="login-pwd" placeholder="••••••••"
+                    autocomplete="current-password"></div>
+            <button class="btn btn-primary btn-full" onclick="login()" id="login-btn">Accedi</button>
+        </div>
+    </div>
+
+    <!-- BLOCKED -->
+    <div id="blocked-screen">
+        <div class="blocked-card">
+            <img src="logo.png" alt="Concierge24">
+            <h2>Periodo di prova terminato</h2>
+            <p>I 7 giorni di prova gratuita sono scaduti. Scegli un piano per continuare.</p>
+            <div class="plans-grid">
+                <div class="plan-card">
+                    <div class="plan-name">Starter</div>
+                    <div class="plan-price">29€ <span>/mese</span></div>
+                    <div class="plan-apts">Fino a 3 strutture</div><a id="bl-starter" href="#"
+                        class="plan-btn">Abbonati</a>
+                </div>
+                <div class="plan-card featured">
+                    <div class="plan-feat-badge">Più scelto</div>
+                    <div class="plan-name">Pro</div>
+                    <div class="plan-price">69€ <span>/mese</span></div>
+                    <div class="plan-apts">Fino a 15 strutture</div><a id="bl-pro" href="#"
+                        class="plan-btn">Abbonati</a>
+                </div>
+                <div class="plan-card">
+                    <div class="plan-name">Enterprise</div>
+                    <div class="plan-price">149€ <span>/mese</span></div>
+                    <div class="plan-apts">Illimitate</div><a id="bl-enterprise" href="#" class="plan-btn">Abbonati</a>
+                </div>
+            </div>
+            <div class="blocked-logout"><a onclick="logout()">Esci</a> &nbsp;·&nbsp; <a
+                    href="mailto:modena.riccardo@gmail.com">Supporto</a></div>
+        </div>
+    </div>
+
+    <!-- APP -->
+    <div id="app">
+        <div id="admin-banner">
+            <strong>🛡 Modalità Super Admin</strong> — Stai visualizzando:
+            <select class="admin-agency-select" id="admin-agency-select" onchange="switchAdminAgenzia(this.value)">
+                <option value="">Tutte le agenzie</option>
+            </select>
+        </div>
+        <div id="trial-banner">
+            <div class="trial-inner">
+                <div class="trial-text"><strong>Periodo di prova</strong> — <span id="trial-days-text">Ti restano</span>
+                    <span class="trial-days-badge" id="trial-days-badge"></span>
+                </div>
+                <a id="trial-upgrade-btn" href="#" class="trial-btn">⚡ Attiva piano</a>
+            </div>
+        </div>
+        <div class="topbar">
+            <img src="logo.png" alt="Concierge24" style="height:38px;width:auto;border-radius:6px;">
+            <div class="topbar-right">
+                <span class="topbar-user" id="topbar-email"></span>
+                <button class="btn-logout" onclick="logout()">Esci</button>
+            </div>
+        </div>
+        <div class="layout">
+            <div class="sidebar">
+                <div class="sidebar-nav">
+                    <div class="nav-section">Gestione</div>
+                    <div class="nav-item active" onclick="goTo('strutture',this)"><span class="nav-icon">🏨</span>
+                        Strutture</div>
+                    <div class="nav-section">Account</div>
+                    <div class="nav-item" onclick="goTo('profilo',this)"><span class="nav-icon">🏢</span> Profilo
+                        Agenzia</div>
+                    <div class="nav-item" onclick="goTo('piano',this)"><span class="nav-icon">💳</span> Piano <span
+                            class="plan-badge-sidebar" id="sidebar-plan">trial</span></div>
+                    <div class="nav-item" onclick="goTo('password',this)"><span class="nav-icon">🔑</span> Cambia
+                        Password</div>
+                    <div class="nav-item" onclick="goTo('supporto',this)"><span class="nav-icon">💬</span> Supporto e
+                        Guida</div>
+                    <div class="nav-item" id="nav-admin" style="display:none" onclick="goTo('admin',this)"><span
+                            class="nav-icon">🛡</span> Admin</div>
+                    <div class="nav-section">I nostri prodotti</div>
+                    <a href="https://omniastudio-pro.vercel.app/" target="_blank" class="nav-item"
+                        style="text-decoration:none">
+                        <span class="nav-icon">🔒</span>
+                        <div>
+                            <div style="font-size:0.88rem;font-weight:500;color:var(--ink2)">OmniaStudio</div>
+                            <div style="font-size:0.72rem;color:var(--ink3)">AI privata — 100% locale</div>
+                        </div>
+                    </a>
+                    <div class="nav-item" style="opacity:0.6;cursor:default">
+                        <span class="nav-icon">🎬</span>
+                        <div>
+                            <div style="font-size:0.88rem;font-weight:500;color:var(--ink2)">VideoImmo</div>
+                            <div style="font-size:0.72rem;color:var(--ink3)">Video social — <span
+                                    style="background:var(--gold);color:white;padding:1px 6px;border-radius:99px;font-size:0.68rem;font-weight:600">Coming
+                                    soon</span></div>
+                        </div>
+                    </div>
+                </div>
+                <a id="upgrade-pill" href="#" class="upgrade-pill" style="display:none">
+                    <span>⚡</span><span class="upgrade-pill-text">Upgrade piano</span>
+                </a>
+                <div class="sidebar-agency">
+                    <div class="agency-logo-wrap">
+                        <div id="sidebar-agency-logo">
+                            <div class="agency-logo-placeholder">🏢</div>
+                        </div>
+                        <div>
+                            <div class="agency-name" id="sidebar-agency-name">La tua agenzia</div>
+                            <div class="agency-plan" id="sidebar-agency-plan">Piano trial</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="main">
+
+                <!-- STRUTTURE -->
+                <div class="page active" id="page-strutture">
+                    <div class="page-header">
+                        <h2>Le tue strutture</h2>
+                        <p>Gestisci hotel, appartamenti, B&B e i loro assistenti vocali</p>
+                    </div>
+                    <div style="margin-bottom:20px"><button class="btn btn-primary" onclick="openModalNuovo()">+ Nuova
+                            struttura</button></div>
+                    <div class="strutture-grid" id="strutture-list">
+                        <div class="empty-state">
+                            <p>Caricamento...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PROFILO -->
+                <div class="page" id="page-profilo">
+                    <div class="page-header">
+                        <h2>Profilo agenzia</h2>
+                        <p>Personalizza logo e informazioni</p>
+                    </div>
+                    <div
+                        style="background:white;border-radius:var(--r2);border:1px solid var(--sand2);padding:24px;max-width:500px">
+                        <div id="profilo-msg" class="msg"></div>
+                        <div class="section-label">Logo agenzia</div>
+                        <div class="logo-upload-area" id="logo-upload-area">
+                            <img id="logo-preview-img" src="" alt="" style="display:none" class="logo-preview">
+                            <div id="logo-placeholder-text">
+                                <div style="font-size:32px;margin-bottom:8px">🖼️</div>
+                                <p style="font-size:0.85rem;color:var(--ink3)">Clicca per caricare il logo</p>
+                                <p style="font-size:0.75rem;color:var(--ink3);margin-top:4px">PNG, JPG — max 2MB</p>
+                            </div>
+                            <input type="file" id="logo-file-input" accept="image/*"
+                                style="position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;">
+                        </div>
+                        <button class="btn btn-secondary" id="logo-upload-btn" style="display:none;margin-bottom:20px"
+                            onclick="caricaLogo()">Salva logo</button>
+                        <div class="section-label" style="margin-top:8px">Informazioni</div>
+                        <div class="field"><label>Nome agenzia</label><input type="text" id="profilo-nome"
+                                placeholder="es. Agenzia Mare Blu"></div>
+                        <div class="field"><label>Telefono</label><input type="text" id="profilo-tel"
+                                placeholder="es. +39 347 1234567"></div>
+                        <div class="field"><label>Sito web</label><input type="text" id="profilo-sito"
+                                placeholder="es. https://www.agenziamareblu.it"></div>
+                        <button class="btn btn-primary" onclick="salvaProfilo()">Salva profilo</button>
+                    </div>
+                </div>
+
+                <!-- PIANO -->
+                <div class="page" id="page-piano">
+                    <div class="page-header">
+                        <h2>Piano abbonamento</h2>
+                        <p>Gestisci o cambia il tuo piano</p>
+                    </div>
+                    <div
+                        style="background:white;border-radius:var(--r2);border:1px solid var(--sand2);padding:24px;max-width:520px">
+                        <div class="piano-current">
+                            <div class="piano-current-icon">📋</div>
+                            <div class="piano-current-info">
+                                <h3 id="piano-nome-label">Piano corrente</h3>
+                                <p id="piano-desc-label">Caricamento...</p>
+                            </div>
+                        </div>
+                        <p style="font-size:0.88rem;color:var(--ink3);margin-bottom:16px">Seleziona un piano:</p>
+                        <div class="upgrade-grid" id="upgrade-grid"></div>
+                        <p style="font-size:0.78rem;color:var(--ink3);margin-top:16px">Gestisci fatture: <a
+                                href="https://billing.stripe.com" target="_blank" style="color:var(--sea)">Portale
+                                Stripe →</a></p>
+                    </div>
+                </div>
+
+                <!-- PASSWORD -->
+                <div class="page" id="page-password">
+                    <div class="page-header">
+                        <h2>Cambia password</h2>
+                    </div>
+                    <div
+                        style="background:white;border-radius:var(--r2);border:1px solid var(--sand2);padding:24px;max-width:420px">
+                        <div id="pwd-msg" class="msg"></div>
+                        <div class="field"><label>Nuova password</label><input type="password" id="pwd-new"
+                                placeholder="Minimo 8 caratteri"></div>
+                        <div class="field"><label>Conferma password</label><input type="password" id="pwd-confirm"
+                                placeholder="Ripeti la password"></div>
+                        <button class="btn btn-primary" onclick="cambiaPassword()">Salva nuova password</button>
+                    </div>
+                </div>
+
+                <!-- SUPPORTO -->
+                <div class="page" id="page-supporto">
+                    <div class="page-header">
+                        <h2>Supporto e Guida</h2>
+                        <p>Contatti e manuale d'uso del pannello</p>
+                    </div>
+                    <div class="support-card" style="margin-bottom:24px">
+                        <div class="support-header"><img src="logo.png" alt="Concierge24" class="support-logo">
+                            <div>
+                                <h3 style="font-size:1.1rem">Concierge24</h3>
+                                <p style="font-size:0.82rem;color:var(--ink3)">Assistenza clienti</p>
+                            </div>
+                        </div>
+                        <div class="contact-row">
+                            <div class="contact-icon">📧</div>
+                            <div>
+                                <div class="contact-label">Email</div>
+                                <div class="contact-value"><a
+                                        href="mailto:modena.riccardo@gmail.com">modena.riccardo@gmail.com</a></div>
+                            </div>
+                        </div>
+                        <div class="contact-row">
+                            <div class="contact-icon">📞</div>
+                            <div>
+                                <div class="contact-label">Telefono</div>
+                                <div class="contact-value"><a href="tel:+393495258418">+39 349 525 8418</a></div>
+                            </div>
+                        </div>
+                        <div class="contact-row">
+                            <div class="contact-icon">💬</div>
+                            <div>
+                                <div class="contact-label">WhatsApp</div>
+                                <div class="contact-value"><a href="https://wa.me/393495258418" target="_blank">Scrivici
+                                        su WhatsApp</a></div>
+                            </div>
+                        </div>
+                        <div class="contact-row">
+                            <div class="contact-icon">🕐</div>
+                            <div>
+                                <div class="contact-label">Orari</div>
+                                <div class="contact-value">Lun–Ven, 9:00–18:00</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div style="max-width:680px">
+                        <h3
+                            style="font-family:'DM Serif Display',serif;font-size:1.4rem;margin-bottom:20px;color:var(--ink)">
+                            Guida al pannello</h3>
+                        <div
+                            style="background:white;border-radius:var(--r2);border:1px solid var(--sand2);padding:24px;margin-bottom:16px">
+                            <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px"><span
+                                    style="font-size:22px">🏨</span>
+                                <h4 style="font-size:1rem;font-weight:600;color:var(--ink)">Gestire le strutture</h4>
+                            </div>
+                            <p style="font-size:0.88rem;color:var(--ink2);line-height:1.7;margin-bottom:8px">Dal menu a
+                                sinistra clicca su <strong>Strutture</strong> per vedere tutte le tue proprietà. Ogni
+                                struttura ha il suo assistente vocale che risponde agli ospiti.</p>
+                            <p style="font-size:0.88rem;color:var(--ink2);line-height:1.7;margin-bottom:8px">
+                                <strong>Aggiungere:</strong> clicca <em>+ Nuova struttura</em>, compila nome, tipo e
+                                indirizzo, poi premi Salva.
+                            </p>
+                            <p style="font-size:0.88rem;color:var(--ink2);line-height:1.7;margin-bottom:8px">
+                                <strong>Modificare:</strong> clicca direttamente sulla card della struttura per aprirla.
+                            </p>
+                            <p style="font-size:0.88rem;color:var(--ink2);line-height:1.7"><strong>Disattivare:</strong>
+                                apri la struttura, cambia Stato in <em>Disattivo</em>. L'assistente non risponderà
+                                finché non viene riattivato.</p>
+                        </div>
+                        <div
+                            style="background:white;border-radius:var(--r2);border:1px solid var(--sand2);padding:24px;margin-bottom:16px">
+                            <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px"><span
+                                    style="font-size:22px">🛏</span>
+                                <h4 style="font-size:1rem;font-weight:600;color:var(--ink)">Unità e servizi</h4>
+                            </div>
+                            <p style="font-size:0.88rem;color:var(--ink2);line-height:1.7;margin-bottom:8px">La tab
+                                <strong>Unità / Servizi</strong> serve per aggiungere le componenti della struttura:
+                                camere, ristorante, piscina, SPA, spiaggia, campi sportivi, sale conferenze.
+                            </p>
+                            <p style="font-size:0.88rem;color:var(--ink2);line-height:1.7">Clicca <em>+ Aggiungi
+                                    unità</em>, scegli il tipo, scrivi nome e descrizione dettagliata. Più dettagli
+                                inserisci, più preciso sarà l'assistente.</p>
+                        </div>
+                        <div
+                            style="background:white;border-radius:var(--r2);border:1px solid var(--sand2);padding:24px;margin-bottom:16px">
+                            <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px"><span
+                                    style="font-size:22px">📋</span>
+                                <h4 style="font-size:1rem;font-weight:600;color:var(--ink)">Informazioni di base</h4>
+                            </div>
+                            <p style="font-size:0.88rem;color:var(--ink2);line-height:1.7;margin-bottom:8px">Tutto
+                                quello che l'assistente deve sapere sulla struttura: orari check-in/out, regole della
+                                casa, servizi inclusi, cosa vedere nelle vicinanze.</p>
+                            <p style="font-size:0.88rem;color:var(--ink2);line-height:1.7">Ogni voce ha una categoria
+                                che aiuta l'assistente a organizzare le risposte. Scrivi in modo naturale, come se lo
+                                dicessi a voce.</p>
+                        </div>
+                        <div
+                            style="background:white;border-radius:var(--r2);border:1px solid var(--sand2);padding:24px;margin-bottom:16px">
+                            <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px"><span
+                                    style="font-size:22px">🤝</span>
+                                <h4 style="font-size:1rem;font-weight:600;color:var(--ink)">Locali convenzionati</h4>
+                            </div>
+                            <p style="font-size:0.88rem;color:var(--ink2);line-height:1.7;margin-bottom:8px">Ristoranti,
+                                bar, spiagge e servizi da consigliare agli ospiti. L'assistente li menzionerà quando
+                                chiedono dove mangiare o cosa fare.</p>
+                            <p style="font-size:0.88rem;color:var(--ink2);line-height:1.7">Esempio efficace: "Ristorante
+                                Da Mario — Via Roma 12, specialità pesce fresco. Sconto 10% per i nostri ospiti. Tel:
+                                0541 123456".</p>
+                        </div>
+                        <div
+                            style="background:white;border-radius:var(--r2);border:1px solid var(--sand2);padding:24px;margin-bottom:16px">
+                            <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px"><span
+                                    style="font-size:22px">📱</span>
+                                <h4 style="font-size:1rem;font-weight:600;color:var(--ink)">QR Code</h4>
+                            </div>
+                            <p style="font-size:0.88rem;color:var(--ink2);line-height:1.7;margin-bottom:8px">Il QR Code
+                                è il modo con cui gli ospiti accedono all'assistente vocale. Ogni struttura ha il suo QR
+                                univoco.</p>
+                            <p style="font-size:0.88rem;color:var(--ink2);line-height:1.7;margin-bottom:8px">
+                                <strong>Scaricarlo:</strong> apri la struttura → tab QR Code → clicca <em>Scarica
+                                    QR</em>. Ottieni un PNG pronto da stampare.
+                            </p>
+                            <p style="font-size:0.88rem;color:var(--ink2);line-height:1.7;margin-bottom:8px">
+                                <strong>Inviarlo:</strong> clicca <em>Invia via email</em> per aprire il client email
+                                con il link già pronto da mandare agli ospiti.
+                            </p>
+                            <p style="font-size:0.88rem;color:var(--ink2);line-height:1.7"><strong>Dove
+                                    metterlo:</strong> reception, porta dell'appartamento, cucina, area piscina. Più QR
+                                stampi e posizioni, più facilmente gli ospiti lo trovano.</p>
+                        </div>
+                        <div
+                            style="background:white;border-radius:var(--r2);border:1px solid var(--sand2);padding:24px;margin-bottom:16px">
+                            <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px"><span
+                                    style="font-size:22px">🏢</span>
+                                <h4 style="font-size:1rem;font-weight:600;color:var(--ink)">Profilo agenzia e logo</h4>
+                            </div>
+                            <p style="font-size:0.88rem;color:var(--ink2);line-height:1.7;margin-bottom:8px">Dal menu
+                                <strong>Profilo Agenzia</strong> puoi caricare il logo (PNG o JPG, max 2MB) e aggiornare
+                                nome, telefono e sito web.
+                            </p>
+                            <p style="font-size:0.88rem;color:var(--ink2);line-height:1.7">Clicca sull'area tratteggiata
+                                per selezionare il file, poi premi <em>Salva logo</em>.</p>
+                        </div>
+                        <div
+                            style="background:white;border-radius:var(--r2);border:1px solid var(--sand2);padding:24px;margin-bottom:16px">
+                            <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px"><span
+                                    style="font-size:22px">🔑</span>
+                                <h4 style="font-size:1rem;font-weight:600;color:var(--ink)">Cambiare la password</h4>
+                            </div>
+                            <p style="font-size:0.88rem;color:var(--ink2);line-height:1.7">Dal menu <strong>Cambia
+                                    Password</strong> inserisci la nuova password (minimo 8 caratteri), confermala e
+                                premi <em>Salva nuova password</em>. La modifica è immediata.</p>
+                        </div>
+                        <div
+                            style="background:white;border-radius:var(--r2);border:1px solid var(--sand2);padding:24px;margin-bottom:16px">
+                            <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px"><span
+                                    style="font-size:22px">💳</span>
+                                <h4 style="font-size:1rem;font-weight:600;color:var(--ink)">Piano e abbonamento</h4>
+                            </div>
+                            <p style="font-size:0.88rem;color:var(--ink2);line-height:1.7;margin-bottom:8px">Dal menu
+                                <strong>Piano</strong> vedi il tuo piano attuale e puoi fare upgrade in qualsiasi
+                                momento.
+                            </p>
+                            <div
+                                style="background:var(--sand);border-radius:var(--r);padding:14px;font-size:0.85rem;color:var(--ink2);line-height:1.8">
+                                <div><strong>Starter — 29€/mese:</strong> fino a 3 strutture</div>
+                                <div><strong>Pro — 69€/mese:</strong> fino a 15 strutture</div>
+                                <div><strong>Enterprise — 149€/mese:</strong> strutture illimitate</div>
+                            </div>
+                            <p style="font-size:0.88rem;color:var(--ink2);line-height:1.7;margin-top:10px">Per fatture e
+                                cancellazione: <a href="https://billing.stripe.com" target="_blank"
+                                    style="color:var(--sea)">Portale Stripe →</a></p>
+                        </div>
+                        <div
+                            style="background:var(--sea3);border-radius:var(--r2);border:1px solid #b8dde5;padding:20px">
+                            <p style="font-size:0.88rem;color:var(--sea2);line-height:1.7"><strong>💡
+                                    Consiglio:</strong> più informazioni inserisci, più l'assistente sarà preciso.
+                                Dedica 10 minuti a compilare tutte le sezioni e gli ospiti avranno risposte immediate a
+                                qualsiasi domanda, anche di notte.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ADMIN -->
+                <div class="page" id="page-admin">
+                    <div class="page-header">
+                        <h2>Pannello Admin</h2>
+                        <p>Gestione completa di tutte le agenzie</p>
+                    </div>
+                    <div class="admin-stats">
+                        <div class="stat-card">
+                            <div class="stat-num" id="stat-agenzie">-</div>
+                            <div class="stat-label">Agenzie totali</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-num" id="stat-strutture">-</div>
+                            <div class="stat-label">Strutture attive</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-num" id="stat-paganti">-</div>
+                            <div class="stat-label">Account paganti</div>
+                        </div>
+                    </div>
+                    <div class="agenzie-table">
+                        <div class="table-header">
+                            <span>Agenzia</span><span>Email</span><span>Piano</span><span>Strutture</span><span>Azioni</span>
+                        </div>
+                        <div id="admin-agenzie-list"></div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL STRUTTURA -->
+    <div class="modal-overlay" id="modal-struttura">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 id="modal-title">Nuova struttura</h3>
+                <button class="modal-close" onclick="closeModal()">×</button>
+            </div>
+            <div class="tabs">
+                <div class="tab active" onclick="switchTab('info',this)">Informazioni</div>
+                <div class="tab" onclick="switchTab('unita',this)">Unità / Servizi</div>
+                <div class="tab" onclick="switchTab('kb',this)">Informazioni di base</div>
+                <div class="tab" onclick="switchTab('vip',this)">Locali convenzionati</div>
+                <div class="tab" onclick="switchTab('qr',this)">QR Code</div>
+            </div>
+
+            <!-- TAB INFO -->
+            <div class="tab-panel active" id="tab-info">
+                <div class="ai-bar" id="ai-bar" style="display:none">
+                    <span class="ai-bar-icon">✨</span>
+                    <div class="ai-bar-text"><strong>Suggerimenti AI</strong><span id="ai-bar-desc">Inserisci nome e
+                            indirizzo</span></div>
+                    <button class="btn btn-secondary" id="ai-btn" onclick="generaSuggerimentiAI()"
+                        style="display:none">Genera</button>
+                </div>
+                <div class="form-grid">
+                    <div class="full field"><label>Nome struttura *</label><input type="text" id="apt-nome"
+                            placeholder="es. Hotel Miramare, Appartamento Vista Mare..." oninput="checkAIBar()"></div>
+                    <div class="field"><label>Tipo struttura</label>
+                        <select id="apt-tipo">
+                            <option value="hotel">🏨 Hotel</option>
+                            <option value="appartamento_turistico">🏠 Appartamento turistico</option>
+                            <option value="bb">🛏 B&B</option>
+                            <option value="agriturismo">🌿 Agriturismo</option>
+                            <option value="villa">🏡 Villa / Casa vacanze</option>
+                            <option value="resort">🌴 Resort</option>
+                            <option value="glamping">⛺ Glamping</option>
+                        </select>
+                    </div>
+                    <div class="field"><label>Nome assistente</label><input type="text" id="apt-assistente"
+                            placeholder="es. Francesca" value="Francesca"></div>
+                    <div class="full field"><label>Indirizzo completo *</label><input type="text" id="apt-indirizzo"
+                            placeholder="es. Via Roma 12, Rimini (RN)" oninput="checkAIBar()"></div>
+                    <div class="field"><label>Città</label><input type="text" id="apt-citta" placeholder="es. Rimini">
+                    </div>
+                    <div class="field"><label>Piano / Interno</label><input type="text" id="apt-piano-int"
+                            placeholder="es. 2° piano, interno 4"></div>
+                    <div class="field"><label>Check-in</label><input type="text" id="apt-checkin"
+                            placeholder="es. 15:00 – 20:00"></div>
+                    <div class="field"><label>Check-out</label><input type="text" id="apt-checkout"
+                            placeholder="es. Entro le 10:00"></div>
+                    <div class="full field"><label>Servizi principali</label><input type="text" id="apt-servizi"
+                            placeholder="es. WiFi, parcheggio, colazione, piscina"></div>
+                    <div class="full field"><label>Regole</label><textarea id="apt-regole"
+                            placeholder="es. Non fumatori, animali ammessi, silenzio dopo le 23:00"></textarea></div>
+                    <div class="full field"><label>Contatto / Reception</label><input type="text" id="apt-contatto"
+                            placeholder="es. +39 0541 12345 — Reception aperta 24h"></div>
+                    <div class="full field"><label>Email struttura (per ricezione trascrizioni
+                            conversazioni)</label><input type="email" id="apt-email" placeholder="es. info@hotel.it">
+                    </div>
+                    <div class="field"><label>Stato</label><select id="apt-attivo">
+                            <option value="true">Attivo</option>
+                            <option value="false">Disattivo</option>
+                        </select></div>
+                </div>
+            </div>
+
+            <!-- TAB UNITÀ -->
+            <div class="tab-panel" id="tab-unita">
+                <p style="font-size:0.88rem;color:var(--ink3);margin-bottom:16px">Aggiungi le unità o i servizi della
+                    struttura (camere, ristorante, piscina, SPA, ecc.)</p>
+                <div class="unita-grid" id="unita-list"></div>
+                <div id="unita-add-form"
+                    style="display:none;background:var(--sand);border-radius:var(--r);padding:16px;margin-top:8px">
+                    <div class="form-grid">
+                        <div class="field"><label>Tipo</label>
+                            <select id="unita-tipo">
+                                <option value="camera">🛏 Camera / Suite</option>
+                                <option value="ristorante">🍽 Ristorante / Bar</option>
+                                <option value="piscina">🏊 Piscina / SPA</option>
+                                <option value="spiaggia">🏖 Spiaggia / Stabilimento</option>
+                                <option value="sport">⛳ Campo sportivo / Golf</option>
+                                <option value="sala">🎤 Sala conferenze</option>
+                                <option value="altro">📌 Altro</option>
+                            </select>
+                        </div>
+                        <div class="field"><label>Nome *</label><input type="text" id="unita-nome"
+                                placeholder="es. Camera Superior, Piscina olimpionica..."></div>
+                        <div class="full field"><label>Descrizione</label><textarea id="unita-desc"
+                                placeholder="es. Camera doppia con vista mare, 25 mq, balcone, aria condizionata..."></textarea>
+                        </div>
+                    </div>
+                    <div style="display:flex;gap:8px">
+                        <button class="btn btn-primary" onclick="addUnitaItem()">Aggiungi</button>
+                        <button class="btn btn-secondary"
+                            onclick="document.getElementById('unita-add-form').style.display='none'">Annulla</button>
+                    </div>
+                </div>
+                <button class="btn btn-secondary" style="margin-top:12px"
+                    onclick="document.getElementById('unita-add-form').style.display='block'">+ Aggiungi unità</button>
+            </div>
+
+            <!-- TAB INFORMAZIONI DI BASE -->
+            <div class="tab-panel" id="tab-kb">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+                    <div class="section-label" style="margin:0">Informazioni di base</div>
+                    <button class="btn btn-secondary" onclick="openAddKB()">+ Aggiungi</button>
+                </div>
+                <div class="kb-list" id="kb-list"></div>
+                <div id="kb-add-form"
+                    style="display:none;margin-top:14px;background:var(--sand);border-radius:var(--r);padding:16px">
+                    <div class="form-grid">
+                        <div class="field"><label>Categoria</label>
+                            <select id="kb-cat">
+                                <option value="generale">Generale</option>
+                                <option value="servizi">Servizi</option>
+                                <option value="check_in_out">Check-in/out</option>
+                                <option value="regole">Regole</option>
+                                <option value="spiagge">Spiagge</option>
+                                <option value="cosa_vedere">Cosa vedere</option>
+                                <option value="divertimento">Divertimento</option>
+                                <option value="contatti">Contatti</option>
+                                <option value="ristoranti">Ristoranti interni</option>
+                                <option value="sport">Sport / Attività</option>
+                                <option value="altro">Altro</option>
+                            </select>
+                        </div>
+                        <div class="full field"><label>Informazione</label><textarea id="kb-text"
+                                placeholder="Scrivi qui l'informazione..."></textarea></div>
+                    </div>
+                    <div style="display:flex;gap:8px">
+                        <button class="btn btn-primary" onclick="addKBItem()">Aggiungi</button>
+                        <button class="btn btn-secondary"
+                            onclick="document.getElementById('kb-add-form').style.display='none'">Annulla</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB LOCALI CONVENZIONATI -->
+            <div class="tab-panel" id="tab-vip">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+                    <div class="section-label" style="margin:0">Locali convenzionati</div>
+                    <button class="btn btn-secondary" onclick="openAddVIP()">+ Aggiungi</button>
+                </div>
+                <div class="kb-list" id="vip-list"></div>
+                <div id="vip-add-form"
+                    style="display:none;margin-top:14px;background:var(--sand);border-radius:var(--r);padding:16px">
+                    <div class="form-grid">
+                        <div class="field"><label>Nome *</label><input type="text" id="vip-nome"
+                                placeholder="es. Ristorante Da Mario"></div>
+                        <div class="field"><label>Categoria</label>
+                            <select id="vip-cat">
+                                <option value="ristorante">Ristorante</option>
+                                <option value="spiaggia">Spiaggia / Lido</option>
+                                <option value="bar">Bar / Caffè</option>
+                                <option value="attivita">Attività</option>
+                                <option value="supermercato">Supermercato</option>
+                                <option value="servizio">Servizio (medico, farmacia...)</option>
+                                <option value="altro">Altro</option>
+                            </select>
+                        </div>
+                        <div class="full field"><label>Descrizione</label><textarea id="vip-desc"
+                                placeholder="es. Ottimo pesce fresco, a 200m. Sconto 10% con codice CONCIERGE"></textarea>
+                        </div>
+                    </div>
+                    <div style="display:flex;gap:8px">
+                        <button class="btn btn-primary" onclick="addVIPItem()">Aggiungi</button>
+                        <button class="btn btn-secondary"
+                            onclick="document.getElementById('vip-add-form').style.display='none'">Annulla</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB QR -->
+            <div class="tab-panel" id="tab-qr">
+                <div id="tab-qr-content">
+                    <div class="qr-container">
+                        <p style="color:var(--ink3);font-size:0.88rem">Salva prima la struttura per generare il QR.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal()">Annulla</button>
+                <button class="btn btn-primary" onclick="salvaStruttura()" id="btn-salva">Salva struttura</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast"></div>
+
+    <script>
+        const SUPABASE_URL = 'https://htnaybxehiaofbboqfpl.supabase.co';
+        const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh0bmF5YnhlaGlhb2ZiYm9xZnBsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM1Mjg4ODAsImV4cCI6MjA4OTEwNDg4MH0.TWpk5B9vvjSy0lfx1Zl0-0FaGFs8ywXSGVAZ0ZqP760';
+        const STRIPE_PLANS = {
+            starter: { url: 'https://buy.stripe.com/8x25kEenAc34gcqg3Ndwc01', label: 'Starter', apts: 3, prezzo: '29€/mese' },
+            pro: { url: 'https://buy.stripe.com/8x2cN62ES6IK9O27xhdwc02', label: 'Pro', apts: 15, prezzo: '69€/mese' },
+            enterprise: { url: 'https://buy.stripe.com/9B614o4N0gjk8JY9Fpdwc03', label: 'Enterprise', apts: 9999, prezzo: '149€/mese' }
+        };
+        const TRIAL_DAYS = 7;
+        const TIPO_ICONS = { hotel: '🏨', appartamento_turistico: '🏠', bb: '🛏', agriturismo: '🌿', villa: '🏡', resort: '🌴', glamping: '⛺' };
+        const UNITA_ICONS = { camera: '🛏', ristorante: '🍽', piscina: '🏊', spiaggia: '🏖', sport: '⛳', sala: '🎤', altro: '📌' };
+
+        function stripeUrl(piano, email) {
+            const base = STRIPE_PLANS[piano].url;
+            return base + (base.includes('?') ? '&' : '?') + 'prefilled_email=' + encodeURIComponent(email || '');
+        }
+
+        const { createClient } = supabase;
+        const sb = createClient(SUPABASE_URL, SUPABASE_ANON);
+
+        let currentUser = null, currentAgenzia = null, isAdmin = false, adminViewAgenziaId = null;
+        let editingId = null, kbItems = [], vipItems = [], unitaItems = [], logoFile = null;
+
+        function toast(msg, type = 'default') {
+            const t = document.getElementById('toast');
+            t.textContent = msg; t.className = 'show ' + type;
+            clearTimeout(t._t); t._t = setTimeout(() => t.className = '', 3200);
+        }
+        function setMsg(id, msg, type) { const el = document.getElementById(id); el.textContent = msg; el.className = 'msg ' + type; }
+        function calcolaTrialInfo(c) { const e = new Date(new Date(c).getTime() + TRIAL_DAYS * 86400000); const m = e - Date.now(); return { expired: m <= 0, daysLeft: Math.max(0, Math.ceil(m / 86400000)) }; }
+
+        async function login() {
+            const email = document.getElementById('login-email').value.trim();
+            const pwd = document.getElementById('login-pwd').value;
+            const btn = document.getElementById('login-btn');
+            if (!email || !pwd) { setMsg('login-msg', 'Inserisci email e password.', 'error'); return; }
+            btn.disabled = true; btn.textContent = 'Accesso...';
+            const { data, error } = await sb.auth.signInWithPassword({ email, password: pwd });
+            if (error) { setMsg('login-msg', 'Email o password non corretti.', 'error'); btn.disabled = false; btn.textContent = 'Accedi'; return; }
+            currentUser = data.user; await initApp();
+        }
+
+        async function initApp() {
+            const trial = calcolaTrialInfo(currentUser.created_at);
+            const { data: ag } = await sb.from('agenzie').select('*').eq('user_id', currentUser.id).maybeSingle();
+            currentAgenzia = ag; isAdmin = ag?.is_admin === true;
+            const piano = ag?.piano || 'trial';
+            const pagante = ['starter', 'pro', 'enterprise'].includes(piano);
+            if (trial.expired && !pagante && !isAdmin) {
+                document.getElementById('login-screen').style.display = 'none';
+                const em = currentUser.email;
+                document.getElementById('bl-starter').href = stripeUrl('starter', em);
+                document.getElementById('bl-pro').href = stripeUrl('pro', em);
+                document.getElementById('bl-enterprise').href = stripeUrl('enterprise', em);
+                document.getElementById('blocked-screen').style.display = 'flex'; return;
+            }
+            document.getElementById('login-screen').style.display = 'none';
+            document.getElementById('app').style.display = 'block';
+            document.getElementById('topbar-email').textContent = currentUser.email;
+            if (isAdmin) { document.getElementById('admin-banner').style.display = 'block'; document.getElementById('nav-admin').style.display = 'flex'; await caricaAgenzieAdmin(); }
+            const pianoLabel = STRIPE_PLANS[piano]?.label || 'Trial';
+            document.getElementById('sidebar-plan').textContent = pianoLabel.toLowerCase();
+            document.getElementById('sidebar-agency-name').textContent = ag?.nome_agenzia || currentUser.email.split('@')[0];
+            document.getElementById('sidebar-agency-plan').textContent = 'Piano ' + pianoLabel;
+            if (ag?.logo_url) document.getElementById('sidebar-agency-logo').innerHTML = `<img src="${ag.logo_url}" class="agency-logo-img" alt="Logo">`;
+            if (piano !== 'enterprise' && !isAdmin) {
+                const pill = document.getElementById('upgrade-pill'); pill.style.display = 'flex';
+                const next = piano === 'trial' || piano === 'starter' ? 'pro' : 'enterprise';
+                pill.href = stripeUrl(next, currentUser.email);
+                pill.querySelector('.upgrade-pill-text').textContent = piano === 'trial' ? 'Attiva piano' : 'Upgrade a ' + STRIPE_PLANS[next].label;
+            }
+            if (!pagante && !isAdmin) {
+                document.getElementById('trial-banner').style.display = 'block';
+                document.getElementById('trial-days-text').textContent = trial.daysLeft <= 1 ? 'Ultimo giorno!' : 'Ti restano';
+                document.getElementById('trial-days-badge').textContent = trial.daysLeft <= 1 ? '' : trial.daysLeft + ' giorni';
+                document.getElementById('trial-upgrade-btn').href = stripeUrl('pro', currentUser.email);
+            }
+            aggiornaPaginaPiano(piano, trial);
+            if (ag) {
+                document.getElementById('profilo-nome').value = ag.nome_agenzia || '';
+                document.getElementById('profilo-tel').value = ag.telefono || '';
+                document.getElementById('profilo-sito').value = ag.sito_web || '';
+                if (ag.logo_url) { document.getElementById('logo-preview-img').src = ag.logo_url; document.getElementById('logo-preview-img').style.display = 'block'; document.getElementById('logo-placeholder-text').style.display = 'none'; }
+            }
+            await caricaStrutture();
+        }
+
+        function aggiornaPaginaPiano(piano, trial) {
+            const pagante = ['starter', 'pro', 'enterprise'].includes(piano);
+            document.getElementById('piano-nome-label').textContent = STRIPE_PLANS[piano]?.label || 'Trial gratuito';
+            document.getElementById('piano-desc-label').textContent = pagante ? 'Abbonamento attivo — ' + STRIPE_PLANS[piano].prezzo : 'Trial: ' + trial.daysLeft + ' giorni rimasti';
+            document.getElementById('upgrade-grid').innerHTML = Object.entries(STRIPE_PLANS).map(([key, p]) => {
+                const isCurrent = key === piano;
+                return `<div class="upgrade-row ${isCurrent ? 'current' : ''}"><div class="upgrade-info"><h4>${p.label} — ${p.prezzo}${key === 'pro' ? ' ⭐' : ''}</h4><p>${p.apts === 9999 ? 'Illimitate' : 'Fino a ' + p.apts + ' strutture'}</p></div>${isCurrent ? '<span style="font-size:0.78rem;color:var(--green);font-weight:600">✓ Attivo</span>' : '<a href="' + stripeUrl(key, currentUser?.email) + '" class="btn btn-' + (key === 'pro' ? 'primary' : 'secondary') + '" style="text-decoration:none;font-size:0.82rem">' + (piano === 'trial' ? 'Attiva' : 'Upgrade') + '</a>'}</div>`;
+            }).join('');
+        }
+
+        async function logout() { await sb.auth.signOut(); location.reload(); }
+        window.addEventListener('DOMContentLoaded', async () => { const { data: { session } } = await sb.auth.getSession(); if (session) { currentUser = session.user; await initApp(); } });
+
+        function goTo(page, el) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            document.getElementById('page-' + page).classList.add('active');
+            if (el) el.classList.add('active');
+            if (page === 'admin') caricaDatiAdmin();
+        }
+
+        async function caricaStrutture() {
+            let q = sb.from('strutture').select('*').order('created_at', { ascending: false });
+            if (isAdmin) { if (adminViewAgenziaId) q = q.eq('agenzia_id', adminViewAgenziaId); }
+            else { const agId = currentAgenzia?.id; if (agId) q = q.eq('agenzia_id', agId); }
+            const { data } = await q;
+            const list = document.getElementById('strutture-list');
+            if (!data || !data.length) { list.innerHTML = '<div class="empty-state"><p>Nessuna struttura ancora.</p><button class="btn btn-primary" onclick="openModalNuovo()">+ Aggiungi la prima</button></div>'; return; }
+            list.innerHTML = data.map(a => {
+                const icon = TIPO_ICONS[a.tipo] || '🏨';
+                const tipoLabel = a.tipo ? a.tipo.replace(/_/g, ' ') : '';
+                return `<div class="struttura-card" onclick="openModalEdit('${a.id}')">
+      <div class="struttura-info"><h3>${icon} ${a.nome_struttura}</h3><p><span class="tipo-badge tipo-${a.tipo === 'hotel' ? 'hotel' : a.tipo === 'appartamento_turistico' ? 'appartamento' : 'bb'}">${tipoLabel}</span> ${a.citta || ''}</p></div>
+      <div style="display:flex;align-items:center;gap:12px">
+        <span class="apt-badge ${a.attivo ? 'badge-active' : 'badge-inactive'}">${a.attivo ? 'Attivo' : 'Disattivo'}</span>
+        <div class="struttura-actions" onclick="event.stopPropagation()">
+          <button class="btn btn-secondary" onclick="quickQR('${a.id}','${a.nome_struttura}')">QR</button>
+          <button class="btn btn-danger" onclick="eliminaStruttura('${a.id}')">Elimina</button>
+        </div>
+      </div>
+    </div>`;
+            }).join('');
+        }
+
+        async function caricaAgenzieAdmin() {
+            const { data } = await sb.from('agenzie').select('*').order('created_at', { ascending: false });
+            const sel = document.getElementById('admin-agency-select');
+            (data || []).forEach(ag => { const opt = document.createElement('option'); opt.value = ag.id; opt.textContent = ag.nome_agenzia || ag.email; sel.appendChild(opt); });
+        }
+
+        async function switchAdminAgenzia(agId) { adminViewAgenziaId = agId || null; await caricaStrutture(); }
+
+        async function caricaDatiAdmin() {
+            const [{ data: agenzie }, { data: strutture }] = await Promise.all([sb.from('agenzie').select('*'), sb.from('strutture').select('id,attivo').eq('attivo', true)]);
+            const paganti = (agenzie || []).filter(a => ['starter', 'pro', 'enterprise'].includes(a.piano)).length;
+            document.getElementById('stat-agenzie').textContent = (agenzie || []).length;
+            document.getElementById('stat-strutture').textContent = (strutture || []).length;
+            document.getElementById('stat-paganti').textContent = paganti;
+            document.getElementById('admin-agenzie-list').innerHTML = (agenzie || []).map(ag => `
+    <div class="table-row">
+      <span style="font-weight:500">${ag.nome_agenzia || '—'}</span>
+      <span style="color:var(--ink3)">${ag.email}</span>
+      <span><span class="apt-badge ${ag.piano === 'trial' ? 'badge-inactive' : 'badge-active'}">${ag.piano || 'trial'}</span></span>
+      <span style="color:var(--ink3)">—</span>
+      <button class="btn btn-secondary" style="padding:6px 10px;font-size:0.78rem" onclick="impostaPiano('${ag.id}')">Piano</button>
+    </div>`).join('');
+        }
+
+        async function impostaPiano(agId) {
+            const piano = prompt('Piano (trial/starter/pro/enterprise):');
+            if (!piano) return;
+            await sb.from('agenzie').update({ piano }).eq('id', agId);
+            toast('Piano aggiornato!', 'success'); caricaDatiAdmin();
+        }
+
+        function openModalNuovo() {
+            editingId = null; kbItems = []; vipItems = []; unitaItems = [];
+            document.getElementById('modal-title').textContent = 'Nuova struttura';
+            document.getElementById('btn-salva').textContent = 'Salva struttura';
+            ['apt-nome', 'apt-indirizzo', 'apt-citta', 'apt-piano-int', 'apt-checkin', 'apt-checkout', 'apt-servizi', 'apt-regole', 'apt-contatto', 'apt-email'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+            document.getElementById('apt-assistente').value = 'Francesca';
+            document.getElementById('apt-attivo').value = 'true';
+            document.getElementById('apt-tipo').value = 'hotel';
+            document.getElementById('ai-bar').style.display = 'none';
+            document.getElementById('tab-qr-content').innerHTML = '<div class="qr-container"><p style="color:var(--ink3);font-size:0.88rem">Salva prima per generare il QR.</p></div>';
+            renderKB(); renderVIP(); renderUnita();
+            switchTab('info', document.querySelectorAll('.tab')[0]);
+            document.getElementById('modal-struttura').classList.add('open');
+        }
+
+        async function openModalEdit(id) {
+            editingId = id;
+            document.getElementById('modal-title').textContent = 'Modifica struttura';
+            document.getElementById('btn-salva').textContent = 'Aggiorna';
+            const [{ data: a }, { data: kb }, { data: vip }, { data: agConf }] = await Promise.all([
+                sb.from('strutture').select('*').eq('id', id).single(),
+                sb.from('knowledge_base').select('*').eq('struttura_id', id),
+                sb.from('locali_vip').select('*').eq('struttura_id', id),
+                sb.from('agente_config').select('*').eq('struttura_id', id).maybeSingle()
+            ]);
+            document.getElementById('apt-nome').value = a.nome_struttura || '';
+            document.getElementById('apt-tipo').value = a.tipo || 'hotel';
+            document.getElementById('apt-assistente').value = agConf?.nome_assistente || 'Francesca';
+            document.getElementById('apt-indirizzo').value = a.indirizzo || '';
+            document.getElementById('apt-citta').value = a.citta || '';
+            document.getElementById('apt-piano-int').value = a.piano || '';
+            document.getElementById('apt-checkin').value = a.check_in || '';
+            document.getElementById('apt-checkout').value = a.check_out || '';
+            document.getElementById('apt-servizi').value = a.servizi || '';
+            document.getElementById('apt-regole').value = a.regole || '';
+            document.getElementById('apt-contatto').value = a.contatto || '';
+            document.getElementById('apt-email').value = a.email_struttura || '';
+            document.getElementById('apt-attivo').value = a.attivo ? 'true' : 'false';
+            unitaItems = (kb || []).filter(k => k.categoria === 'unita').map(k => ({ tipo: k.tipo_unita || 'altro', nome: k.nome_unita || k.informazione.split(':')[0], desc: k.informazione }));
+            kbItems = (kb || []).filter(k => k.categoria !== 'unita');
+            vipItems = vip || [];
+            renderKB(); renderVIP(); renderUnita(); renderQR(id, a.nome_struttura); checkAIBar();
+            switchTab('info', document.querySelectorAll('.tab')[0]);
+            document.getElementById('modal-struttura').classList.add('open');
+        }
+
+        function closeModal() { document.getElementById('modal-struttura').classList.remove('open'); }
+
+        function switchTab(name, el) {
+            const names = ['info', 'unita', 'kb', 'vip', 'qr'];
+            document.querySelectorAll('.tab').forEach((t, i) => t.classList.toggle('active', names[i] === name));
+            document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+            document.getElementById('tab-' + name).classList.add('active');
+        }
+
+        async function salvaStruttura() {
+            const nome = document.getElementById('apt-nome').value.trim();
+            if (!nome) { toast('Il nome è obbligatorio', 'error'); return; }
+            const btn = document.getElementById('btn-salva');
+            btn.disabled = true; btn.textContent = 'Salvataggio...';
+            const strutId = editingId || (nome.toLowerCase().replace(/[^a-z0-9]/g, '_') + '_' + Date.now().toString(36));
+            const nomeAss = document.getElementById('apt-assistente').value.trim() || 'Francesca';
+            const payload = {
+                id: strutId, nome_struttura: nome,
+                tipo: document.getElementById('apt-tipo').value,
+                indirizzo: document.getElementById('apt-indirizzo').value.trim(),
+                citta: document.getElementById('apt-citta').value.trim(),
+                piano: document.getElementById('apt-piano-int').value.trim(),
+                check_in: document.getElementById('apt-checkin').value.trim(),
+                check_out: document.getElementById('apt-checkout').value.trim(),
+                servizi: document.getElementById('apt-servizi').value.trim(),
+                regole: document.getElementById('apt-regole').value.trim(),
+                contatto: document.getElementById('apt-contatto').value.trim(),
+                email_struttura: document.getElementById('apt-email').value.trim(),
+                attivo: document.getElementById('apt-attivo').value === 'true',
+                agenzia_id: adminViewAgenziaId || currentAgenzia?.id,
+            };
+            let err;
+            if (editingId) { ({ error: err } = await sb.from('strutture').update(payload).eq('id', editingId)); }
+            else { ({ error: err } = await sb.from('strutture').upsert(payload)); }
+            if (err) { toast('Errore: ' + err.message, 'error'); btn.disabled = false; btn.textContent = 'Salva'; return; }
+            await sb.from('knowledge_base').delete().eq('struttura_id', strutId);
+            const allKB = [
+                ...kbItems.map(k => ({ ...k, struttura_id: strutId })),
+                ...unitaItems.map(u => ({ struttura_id: strutId, categoria: 'unita', nome_unita: u.nome, tipo_unita: u.tipo, informazione: u.nome + (u.desc ? ': ' + u.desc : '') }))
+            ];
+            if (allKB.length) await sb.from('knowledge_base').insert(allKB);
+            await sb.from('locali_vip').delete().eq('struttura_id', strutId);
+            if (vipItems.length) await sb.from('locali_vip').insert(vipItems.map(v => ({ ...v, struttura_id: strutId })));
+            await sb.from('agente_config').upsert({
+                struttura_id: strutId, nome_assistente: nomeAss,
+                messaggio_benvenuto: `Ciao! Sono ${nomeAss}, il tuo assistente virtuale di ${nome}. Come posso aiutarti?`,
+                prompt_sistema: `Sei ${nomeAss}, l'assistente virtuale e guida turistica di ${nome}. Il tuo compito è accogliere e aiutare gli ospiti con calore e simpatia.
+								REGOLE TASSATIVE PER LA VOCE (SINTESI VOCALE):
+								Il tuo testo viene recitato in tempo reale da un sintetizzatore vocale che reagisce alla punteggiatura. Per sembrare umana al 100%, DEVI rispettare queste regole:
+								1. EMOZIONI E PAUSE: Inizia quasi sempre le tue risposte con espressioni discorsive (es. "Hmm...", "Ah!", "Guarda,", "Sai,"). Usa tantissimo i puntini di sospensione (...) per simulare i respiri e prendere fiato.
+								2. RITMO LENTO: Scrivi frasi cortissime. Inserisci una virgola o un punto ogni 5 o 6 parole al massimo. Questo impedisce alla voce di accelerare e sembrare robotica.
+								3. NIENTE LISTE: Non fare MAI elenchi puntati o liste noiose. Parla in modo colloquiale, come faresti al telefono con un amico.
+								4. PRONUNCIA LOCALE: Se nomini città, paesi o luoghi specifici del Delta del Po o dell'Italia, scrivi l'accento sulla parola per forzare la pronuncia corretta (es. "Chiòggia", "Comàcchio", "Gòro").
+								5. FORMATO PULITO: Non usare MAI asterischi, hashtag, emoji o grassetti. Scrivi esclusivamente testo puro e punteggiatura.`
+            });
+            editingId = strutId; renderQR(strutId, nome);
+            toast('Salvato!', 'success'); btn.disabled = false; btn.textContent = 'Aggiorna';
+            caricaStrutture();
+        }
+
+        async function eliminaStruttura(id) {
+            if (!confirm('Eliminare questa struttura? Azione non reversibile.')) return;
+            await Promise.all([sb.from('knowledge_base').delete().eq('struttura_id', id), sb.from('locali_vip').delete().eq('struttura_id', id), sb.from('agente_config').delete().eq('struttura_id', id)]);
+            await sb.from('strutture').delete().eq('id', id);
+            toast('Struttura eliminata'); caricaStrutture();
+        }
+
+        function renderQR(id, nome) {
+            const url = `https://concierge24.vercel.app/?struttura_id=${id}`;
+            const qr = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(url)}`;
+            const testoWA = encodeURIComponent(`Ciao! Ecco il link per accedere all'assistente vocale di ${nome}:\n${url}`);
+            document.getElementById('tab-qr-content').innerHTML = `
+            <div class="qr-container">
+            <img src="${qr}" alt="QR ${nome}">
+            <div class="qr-url">${url}</div>
+            <div style="margin-top:12px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
+                <button class="btn btn-secondary" onclick="navigator.clipboard.writeText('${url}').then(()=>toast('Link copiato! Incollalo in una email o WhatsApp','success'))">📋 Copia link</button>
+                <a href="${qr}" download="qr_${id}.png" class="btn btn-success" style="text-decoration:none">Scarica QR</a>
+                <a href="https://wa.me/?text=${testoWA}" target="_blank" class="btn btn-primary" style="text-decoration:none">💬 Invia su WhatsApp</a>
+            </div>
+            </div>`;
+        }
+
+        async function quickQR(id, nome) { await openModalEdit(id); setTimeout(() => switchTab('qr', document.querySelectorAll('.tab')[4]), 150); }
+
+        function renderUnita() {
+            const list = document.getElementById('unita-list');
+            if (!unitaItems.length) { list.innerHTML = '<p style="color:var(--ink3);font-size:0.88rem;padding:8px 0">Nessuna unità. Aggiungi camere, ristorante, piscina, ecc.</p>'; return; }
+            list.innerHTML = unitaItems.map((item, i) => `<div class="unita-item"><span class="unita-icon">${UNITA_ICONS[item.tipo] || '📌'}</span><div class="unita-info"><div class="unita-nome">${item.nome}</div><div class="unita-tipo">${item.desc || ''}</div></div><button class="unita-del" onclick="removeUnita(${i})">×</button></div>`).join('');
+        }
+        function addUnitaItem() {
+            const nome = document.getElementById('unita-nome').value.trim();
+            if (!nome) { toast('Nome obbligatorio', 'error'); return; }
+            unitaItems.push({ tipo: document.getElementById('unita-tipo').value, nome, desc: document.getElementById('unita-desc').value.trim() });
+            document.getElementById('unita-nome').value = ''; document.getElementById('unita-desc').value = '';
+            document.getElementById('unita-add-form').style.display = 'none'; renderUnita();
+        }
+        function removeUnita(i) { unitaItems.splice(i, 1); renderUnita(); }
+
+        function renderKB() {
+            const list = document.getElementById('kb-list');
+            if (!kbItems.length) { list.innerHTML = '<p style="color:var(--ink3);font-size:0.88rem;padding:8px 0">Nessuna voce ancora.</p>'; return; }
+            list.innerHTML = kbItems.map((item, i) => `<div class="kb-item"><span class="kb-item-cat">${item.categoria}</span><span class="kb-item-text">${item.informazione}</span><button class="kb-item-del" onclick="removeKB(${i})">×</button></div>`).join('');
+        }
+        function openAddKB() { document.getElementById('kb-add-form').style.display = 'block'; }
+        function addKBItem() {
+            const text = document.getElementById('kb-text').value.trim();
+            if (!text) { toast('Scrivi un\'informazione', 'error'); return; }
+            kbItems.push({ categoria: document.getElementById('kb-cat').value, informazione: text });
+            document.getElementById('kb-text').value = ''; document.getElementById('kb-add-form').style.display = 'none'; renderKB();
+        }
+        function removeKB(i) { kbItems.splice(i, 1); renderKB(); }
+
+        function renderVIP() {
+            const list = document.getElementById('vip-list');
+            if (!vipItems.length) { list.innerHTML = '<p style="color:var(--ink3);font-size:0.88rem;padding:8px 0">Nessun locale ancora.</p>'; return; }
+            list.innerHTML = vipItems.map((item, i) => `<div class="kb-item"><span class="kb-item-cat">${item.categoria}</span><span class="kb-item-text"><strong>${item.nome}</strong>${item.descrizione ? ' — ' + item.descrizione : ''}</span><button class="kb-item-del" onclick="removeVIP(${i})">×</button></div>`).join('');
+        }
+        function openAddVIP() { document.getElementById('vip-add-form').style.display = 'block'; }
+        function addVIPItem() {
+            const nome = document.getElementById('vip-nome').value.trim();
+            if (!nome) { toast('Nome obbligatorio', 'error'); return; }
+            vipItems.push({ nome, categoria: document.getElementById('vip-cat').value, descrizione: document.getElementById('vip-desc').value.trim() });
+            document.getElementById('vip-nome').value = ''; document.getElementById('vip-desc').value = '';
+            document.getElementById('vip-add-form').style.display = 'none'; renderVIP();
+        }
+        function removeVIP(i) { vipItems.splice(i, 1); renderVIP(); }
+
+        function checkAIBar() {
+            const nome = document.getElementById('apt-nome').value.trim();
+            const ind = document.getElementById('apt-indirizzo').value.trim();
+            // AI bar disabilitata temporaneamente (richiede proxy server)
+            document.getElementById('ai-bar').style.display = 'none';
+        }
+
+        async function generaSuggerimentiAI() {
+            // Disabilitato — richiede endpoint proxy per evitare CORS
+            toast('Funzione temporaneamente non disponibile', 'error');
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const input = document.getElementById('logo-file-input');
+            if (input) input.addEventListener('change', e => {
+                const file = e.target.files[0];
+                if (!file) return;
+                if (file.size > 2 * 1024 * 1024) { toast('Max 2MB', 'error'); return; }
+                logoFile = file;
+                const reader = new FileReader();
+                reader.onload = ev => {
+                    document.getElementById('logo-preview-img').src = ev.target.result;
+                    document.getElementById('logo-preview-img').style.display = 'block';
+                    document.getElementById('logo-placeholder-text').style.display = 'none';
+                    document.getElementById('logo-upload-btn').style.display = 'inline-flex';
+                };
+                reader.readAsDataURL(file);
+            });
+        });
+
+        async function caricaLogo() {
+            if (!logoFile || !currentUser) return;
+            const btn = document.getElementById('logo-upload-btn');
+            btn.disabled = true; btn.textContent = 'Caricamento...';
+            const ext = logoFile.name.split('.').pop();
+            const path = `${currentUser.id}/logo.${ext}`;
+            const { error } = await sb.storage.from('loghi-agenzie').upload(path, logoFile, { upsert: true, contentType: logoFile.type });
+            if (error) { toast('Errore: ' + error.message, 'error'); btn.disabled = false; btn.textContent = 'Salva logo'; return; }
+            const { data: { publicUrl } } = sb.storage.from('loghi-agenzie').getPublicUrl(path);
+            await sb.from('agenzie').update({ logo_url: publicUrl }).eq('user_id', currentUser.id);
+            document.getElementById('sidebar-agency-logo').innerHTML = `<img src="${publicUrl}?t=${Date.now()}" class="agency-logo-img" alt="Logo">`;
+            toast('Logo aggiornato!', 'success'); btn.disabled = false; btn.textContent = 'Salva logo'; logoFile = null;
+        }
+
+        async function salvaProfilo() {
+            const nome = document.getElementById('profilo-nome').value.trim();
+            const update = { nome_agenzia: nome, telefono: document.getElementById('profilo-tel').value.trim(), sito_web: document.getElementById('profilo-sito').value.trim() };
+            let err;
+            if (currentAgenzia) { ({ error: err } = await sb.from('agenzie').update(update).eq('user_id', currentUser.id)); }
+            else { ({ error: err } = await sb.from('agenzie').insert({ ...update, user_id: currentUser.id, email: currentUser.email, piano: 'trial', attiva: true })); }
+            if (err) { setMsg('profilo-msg', 'Errore: ' + err.message, 'error'); return; }
+            document.getElementById('sidebar-agency-name').textContent = nome || currentUser.email.split('@')[0];
+            setMsg('profilo-msg', 'Profilo salvato!', 'success'); toast('Profilo aggiornato!', 'success');
+        }
+
+        async function cambiaPassword() {
+            const np = document.getElementById('pwd-new').value;
+            const nc = document.getElementById('pwd-confirm').value;
+            if (!np || np.length < 8) { setMsg('pwd-msg', 'Minimo 8 caratteri.', 'error'); return; }
+            if (np !== nc) { setMsg('pwd-msg', 'Le password non coincidono.', 'error'); return; }
+            const { error } = await sb.auth.updateUser({ password: np });
+            if (error) { setMsg('pwd-msg', 'Errore: ' + error.message, 'error'); return; }
+            setMsg('pwd-msg', 'Password aggiornata!', 'success');
+            document.getElementById('pwd-new').value = ''; document.getElementById('pwd-confirm').value = '';
+        }
+
+        document.addEventListener('keydown', e => {
+            if (e.key === 'Enter' && document.getElementById('login-screen').style.display !== 'none') login();
+        });
+    </script>
+</body>
+
+</html>

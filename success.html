@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="it">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pagamento confermato — Concierge24</title>
+    <link rel="icon" type="image/jpeg" href="logo.jpg">
+    <link
+        href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600&display=swap"
+        rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #0d4a57 0%, #1a6b7a 100%);
+        }
+
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 56px 48px;
+            max-width: 480px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 32px 80px rgba(0, 0, 0, 0.2);
+        }
+
+        .logo {
+            width: 120px;
+            height: auto;
+            margin: 0 auto 28px;
+            display: block;
+            border-radius: 10px;
+        }
+
+        .icon {
+            width: 64px;
+            height: 64px;
+            background: #e8f5ee;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            font-size: 28px;
+        }
+
+        h1 {
+            font-family: 'DM Serif Display', serif;
+            font-size: 1.8rem;
+            color: #0f0e0c;
+            margin-bottom: 12px;
+        }
+
+        p {
+            color: #6b6560;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            margin-bottom: 8px;
+        }
+
+        .highlight {
+            background: #e8f4f6;
+            border-radius: 10px;
+            padding: 16px 20px;
+            margin: 24px 0;
+            text-align: left;
+        }
+
+        .highlight p {
+            color: #0d4a57;
+            font-size: 0.88rem;
+            margin: 4px 0;
+        }
+
+        .highlight strong {
+            color: #0d4a57;
+        }
+
+        .btn {
+            display: inline-block;
+            margin-top: 24px;
+            padding: 14px 32px;
+            background: #1a6b7a;
+            color: white;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.95rem;
+            transition: background .2s;
+        }
+
+        .btn:hover {
+            background: #0d4a57;
+        }
+
+        .footer {
+            margin-top: 24px;
+            font-size: 0.78rem;
+            color: #a09890;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="card">
+        <img src="logo.jpg" alt="Concierge24" class="logo">
+        <div class="icon">✅</div>
+        <h1>Pagamento confermato!</h1>
+        <p>Il tuo abbonamento Concierge24 è ora attivo.</p>
+        <p>Riceverai una email di conferma da Stripe nei prossimi minuti.</p>
+        <div class="highlight">
+            <p><strong>Cosa succede adesso?</strong></p>
+            <p>• Il tuo account è stato aggiornato</p>
+            <p>• Puoi accedere al pannello e configurare i tuoi appartamenti</p>
+            <p>• Per assistenza: <strong>assistente.turismo@gmail.com</strong></p>
+        </div>
+        <a href="admin.html" class="btn">Vai al pannello →</a>
+        <div class="footer">Grazie per aver scelto Concierge24.<br>Puoi cancellare in qualsiasi momento dal pannello
+            Stripe.</div>
+    </div>
+</body>
+
+</html>

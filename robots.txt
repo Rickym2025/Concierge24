@@ -1,0 +1,14 @@
+User-agent: *
+Allow: /
+Allow: /llm.txt
+Allow: /sitemap.xml
+
+# Sitemap
+Sitemap: https://concierge24.vercel.app/sitemap.xml
+
+# AI Crawlers
+User-agent: GPTBot
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /

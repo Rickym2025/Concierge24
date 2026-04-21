@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="it">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Permissions-Policy" content="geolocation=*">
+    <title>Assistente Turistico Virtuale</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/livekit-client/dist/livekit-client.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        :root {
+            --glass: rgba(255, 255, 255, 0.15);
+        }
+
+        body,
+        html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            font-family: 'Outfit', sans-serif;
+            overflow: hidden;
+            color: white;
+        }
+
+        /* Se non hai il video, metto un colore di sfondo di fallback */
+        body {
+            background-color: #1a1a1a;
+        }
+
+        #bg-video {
+            position: fixed;
+            right: 0;
+            bottom: 0;
+            min-width: 100%;
+            min-height: 100%;
+            z-index: -2;
+            object-fit: cover;
+            filter: brightness(40%) saturate(1.2);
+        }
+
+        .container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background: radial-gradient(circle, rgba(0, 0, 0, 0.2) 0%, rgba(0, 0, 0, 0.6) 100%);
+        }
+
+        .glass-card {
+            background: var(--glass);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 40px;
+            padding: 50px;
+            text-align: center;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.4);
+            max-width: 400px;
+            width: 90%;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin: 10px 0;
+            font-weight: 700;
+        }
+
+        .subtitle {
+            opacity: 0.8;
+            font-size: 1rem;
+            margin-bottom: 30px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        input {
+            padding: 12px 20px;
+            border-radius: 20px;
+            border: none;
+            background: rgba(255, 255, 255, 0.9);
+            font-family: 'Outfit';
+            font-size: 1rem;
+            outline: none;
+            color: #333;
+        }
+
+        .btn-start {
+            background: white;
+            color: #004d40;
+            border: none;
+            padding: 15px 35px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: 0.3s;
+            width: 100%;
+        }
+
+        .btn-start:hover {
+            transform: scale(1.05);
+        }
+
+        .btn-start:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        #status {
+            margin-top: 20px;
+            font-size: 0.9rem;
+            opacity: 0.9;
+            min-height: 1.2em;
+        }
+
+        #debug-gps {
+            margin-top: 8px;
+            font-size: 0.72rem;
+            opacity: 0.55;
+            font-family: monospace;
+            word-break: break-all;
+        }
+
+        .dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background: white;
+            border-radius: 50%;
+            margin-left: 6px;
+            vertical-align: middle;
+            animation: pulse 1s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+                transform: scale(1)
+            }
+
+            50% {
+                opacity: 0.4;
+                transform: scale(0.7)
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <video id="bg-video" autoplay muted loop playsinline oncanplay="this.classList.add('loaded')">
+        <source src="https://concierge24.vercel.app/video_chioggia.mp4" type="video/mp4">
+    </video>
+    <div class="container">
+        <div class="glass-card">
+            <h1>Concierge 24</h1>
+            <p class="subtitle">La tua guida vocale intelligente.</p>
+            <div class="input-group" id="userForm">
+                <input type="text" id="userName" placeholder="Il tuo Nome (Opzionale)">
+                <input type="email" id="userEmail" placeholder="La tua Email (Opzionale)">
+            </div>
+            <button id="startBtn" class="btn-start">📍 Avvia la Guida</button>
+            <div id="status">Pronta per connettersi</div>
+            <div id="debug-gps"></div>
+        </div>
+    </div>
+
+    <script>
+        const LIVEKIT_URL = "wss://francesca-assistente-turismo-j2sgbyh6.livekit.cloud";
+        const API_URL = "https://assistente-turismo.duckdns.org/api/get-token";
+        const SUPABASE_URL = "https://htnaybxehiaofbboqfpl.supabase.co";
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh0bmF5YnhlaGlhb2ZiYm9xZnBsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM1Mjg4ODAsImV4cCI6MjA4OTEwNDg4MH0.TWpk5B9vvjSy0lfx1Zl0-0FaGFs8ywXSGVAZ0ZqP760';
+
+        const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        const urlParams = new URLSearchParams(window.location.search);
+        const strutturaId = urlParams.get('struttura_id') || "hotel_test";
+
+        const nomeSalvato = localStorage.getItem("turista_nome");
+        const isReturning = !!nomeSalvato;
+        if (nomeSalvato) {
+            document.getElementById('userName').value = nomeSalvato;
+            document.getElementById('status').innerText = "Bentornato, " + nomeSalvato + "!";
+        }
+
+        const btn = document.getElementById('startBtn');
+        const status = document.getElementById('status');
+        const debugGps = document.getElementById('debug-gps');
+
+        let room = null;
+        let gpsPayload = null;          // il messaggio da inviare all'agente
+        let indirizzoAppartamento = null; // caricato da Supabase
+
+        function logGps(msg) { debugGps.innerText = msg; console.log("[GPS]", msg); }
+
+        // Carica l'indirizzo dell'appartamento da Supabase
+        // Usato come posizione di fallback quando il GPS non è disponibile o impreciso
+        async function caricaIndirizzo() {
+            try {
+                const { data } = await sb.from('strutture')
+                    .select('nome_struttura, citta, indirizzo')
+                    .eq('id', strutturaId).single();
+                if (data?.indirizzo) {
+                    indirizzoAppartamento = data.indirizzo;
+                    console.log("🏠 Indirizzo fallback caricato:", indirizzoAppartamento);
+                }
+            } catch (e) { console.warn("Indirizzo non caricato:", e.message); }
+        }
+
+        // GPS con 3 livelli di fallback
+        function avviaRilevamentoGPS() {
+            if (!navigator.geolocation) {
+                logGps("❌ Geolocation non supportata → uso indirizzo appartamento");
+                usaFallbackIndirizzo(); return;
+            }
+            logGps("📍 Rilevamento GPS (alta precisione)...");
+
+            // Livello 1: GPS hardware (preciso, funziona su rete cellulare all'aperto)
+            navigator.geolocation.getCurrentPosition(
+                (pos) => {
+                    const acc = pos.coords.accuracy;
+                    // Accuratezza > 5km = quasi certamente geolocalizzazione IP del router WiFi
+                    // → inutile, usiamo l'indirizzo dell'appartamento che sappiamo essere corretto
+                    if (acc > 5000 && indirizzoAppartamento) {
+                        logGps(`⚠️ GPS impreciso (±${Math.round(acc / 1000)}km) — uso indirizzo appartamento`);
+                        usaFallbackIndirizzo();
+                    } else {
+                        gpsPayload = { tipo: "gps", lat: pos.coords.latitude, lon: pos.coords.longitude, fonte: acc < 200 ? "gps_hardware" : "gps_wifi" };
+                        logGps(`✅ GPS: ${pos.coords.latitude.toFixed(5)}, ${pos.coords.longitude.toFixed(5)} (±${Math.round(acc)}m)`);
+                        if (room?.localParticipant) inviaPayloadGPS();
+                    }
+                },
+                () => {
+                    // Livello 2: bassa precisione (più veloce, usa WiFi/cella)
+                    logGps("⚠️ Alta precisione fallita → provo bassa precisione...");
+                    navigator.geolocation.getCurrentPosition(
+                        (pos2) => {
+                            const acc2 = pos2.coords.accuracy;
+                            if (acc2 > 5000 && indirizzoAppartamento) {
+                                logGps(`⚠️ WiFi/IP impreciso (±${Math.round(acc2 / 1000)}km) → uso indirizzo appartamento`);
+                                usaFallbackIndirizzo();
+                            } else {
+                                gpsPayload = { tipo: "gps", lat: pos2.coords.latitude, lon: pos2.coords.longitude, fonte: "gps_bassa_precisione" };
+                                logGps(`✅ GPS bassa precisione: ±${Math.round(acc2)}m`);
+                                if (room?.localParticipant) inviaPayloadGPS();
+                            }
+                        },
+                        () => {
+                            // Livello 3: nessun GPS → indirizzo appartamento
+                            logGps("❌ GPS non disponibile → uso indirizzo appartamento");
+                            usaFallbackIndirizzo();
+                        },
+                        { enableHighAccuracy: false, timeout: 8000, maximumAge: 120000 }
+                    );
+                },
+                { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+            );
+        }
+
+        function usaFallbackIndirizzo() {
+            if (indirizzoAppartamento) {
+                gpsPayload = { tipo: "indirizzo_appartamento", indirizzo: indirizzoAppartamento };
+                logGps(`🏠 Posizione: ${indirizzoAppartamento}`);
+                if (room?.localParticipant) inviaPayloadGPS();
+            } else {
+                logGps("⚠️ Nessuna posizione disponibile");
+            }
+        }
+
+        async function inviaPayloadGPS() {
+            if (!room?.localParticipant || !gpsPayload) return;
+            try {
+                await room.localParticipant.publishData(
+                    new TextEncoder().encode(JSON.stringify(gpsPayload)),
+                    { reliable: true }
+                );
+                logGps(`✅ Posizione inviata (${gpsPayload.fonte || gpsPayload.tipo})`);
+            } catch (e) { logGps(`❌ Errore invio: ${e.message}`); }
+        }
+
+        btn.addEventListener('click', async () => {
+            btn.disabled = true;
+            const nome = document.getElementById('userName').value.trim() || "Ospite";
+            const email = document.getElementById('userEmail').value.trim() || "";
+            localStorage.setItem("turista_nome", nome);
+            document.getElementById('userForm').style.display = 'none';
+            status.innerText = "🔑 Richiesta accesso...";
+
+            // Carica indirizzo fallback e avvia GPS in parallelo
+            caricaIndirizzo();
+            avviaRilevamentoGPS();
+
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ struttura_id: strutturaId, nome_utente: nome, email_utente: email, is_returning: isReturning })
+                });
+                if (!response.ok) throw new Error("Errore autorizzazione: " + response.statusText);
+                const data = await response.json();
+
+                status.innerText = "⏳ Connessione...";
+                room = new LivekitClient.Room();
+
+                room.on(LivekitClient.RoomEvent.TrackSubscribed, (track) => {
+                    if (track.kind === 'audio') {
+                        const el = track.attach(); el.autoplay = true;
+                        document.body.appendChild(el);
+                    }
+                });
+
+                let primoSaluto = false;
+                room.on(LivekitClient.RoomEvent.ActiveSpeakersChanged, (speakers) => {
+                    const agenteParla = speakers.some(s => s.identity !== room.localParticipant.identity);
+                    if (!primoSaluto && agenteParla) {
+                        primoSaluto = true;
+                        status.innerHTML = "✨ In ascolto <span class='dot'></span>";
+                    }
+                    if (primoSaluto) {
+                        const dot = document.querySelector('.dot');
+                        if (dot) dot.style.display = agenteParla ? 'inline-block' : 'none';
+                    }
+                });
+
+                // Quando l'agente entra nella room, invia la posizione
+                room.on(LivekitClient.RoomEvent.ParticipantConnected, (participant) => {
+                    if (participant.identity === room.localParticipant.identity) return;
+                    if (gpsPayload) {
+                        inviaPayloadGPS();
+                    } else {
+                        // Ancora in attesa GPS → aspetta max 10s poi usa fallback
+                        const interval = setInterval(() => {
+                            if (gpsPayload) { clearInterval(interval); inviaPayloadGPS(); }
+                        }, 300);
+                        setTimeout(() => {
+                            clearInterval(interval);
+                            if (!gpsPayload) usaFallbackIndirizzo();
+                        }, 10000);
+                    }
+                });
+
+                await room.connect(LIVEKIT_URL, data.token);
+                await room.localParticipant.setMicrophoneEnabled(true);
+                btn.style.display = "none";
+                status.innerText = "⏳ Avvio assistente...";
+
+            } catch (e) {
+                console.error(e);
+                status.innerText = "❌ Errore di connessione al server.";
+                btn.disabled = false;
+                document.getElementById('userForm').style.display = 'flex';
+            }
+        });
+    </script>
+</body>
+
+</html>
