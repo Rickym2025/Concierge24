@@ -62,9 +62,11 @@
             </div>
 
             <div class="flex items-center gap-4">
-                <!-- QUI INSERISCI IL LINK ALLA TUA ATTUALE PAGINA DI LOGIN/DASHBOARD -->
-                <a href="/login-agente" class="text-sm font-bold text-white hover:text-brand-400 transition-colors hidden sm:block">Accedi</a>
-                <a href="#prezzi" class="bg-brand-500 hover:bg-brand-400 text-black px-5 py-2 rounded-full text-sm font-bold transition-all shadow-[0_0_15px_rgba(249,115,22,0.3)]">Inizia Ora</a>
+                <!-- Link all'area Admin (Pannello Agenzie) -->
+                <a href="/admin" class="text-sm font-bold text-white hover:text-brand-400 transition-colors hidden sm:block">Area Agenzie</a>
+                
+                <!-- Link per provare l'Agente (va alla pagina chat) -->
+                <a href="/chat" class="bg-brand-500 hover:bg-brand-400 text-black px-5 py-2 rounded-full text-sm font-bold transition-all shadow-[0_0_15px_rgba(249,115,22,0.3)]">Prova l'Agente</a>
             </div>
         </div>
     </nav>
@@ -87,6 +89,15 @@
                     <a href="#prezzi" class="bg-white text-black px-8 py-4 rounded-full font-bold flex items-center gap-2 hover:scale-105 transition-transform">
                         Attiva per la tua struttura
                     </a>
+                </div>
+                <!-- Box Dati Demo -->
+                <div class="mt-8 p-4 border border-brand-500/30 bg-brand-500/10 rounded-2xl max-w-lg">
+                    <p class="text-sm text-brand-400 font-bold mb-2 uppercase tracking-widest">Credenziali Demo per Test</p>
+                    <p class="text-sm text-slate-300 mb-1">Per provare l'agente o il pannello admin, usa questi accessi:</p>
+                    <ul class="text-sm text-white font-mono space-y-1">
+                        <li>🏨 Hotel: <span class="text-brand-400">demo@hotelmiramarescacchi.it</span></li>
+                        <li>🏠 App.: <span class="text-brand-400">demo@appartamentoscacchi.it</span></li>
+                    </ul>
                 </div>
             </div>
 
