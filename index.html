@@ -361,14 +361,12 @@
 
         </div>
     </footer>
-<!-- CHATBOT CONCIERGE24 -->
+    
+<!-- CHATBOT CONCIERGE24 - FRANCESCA -->
 <div id="chatbot-container"></div>
 
 <script>
-    // Configurazione Webhook n8n (Sostituisci con il tuo URL di n8n)
-    const CHATBOT_WEBHOOK = 'https://n8n.labottegadeldelta.it/webhook/concierge24-chatbot';
-    
-    // Generazione Session ID per memoria conversazione
+    const CHATBOT_WEBHOOK = 'https://n8n.labottegadeldelta.it/webhook/concierge24-chat';
     let chatSessionId = localStorage.getItem('c24_chat_session') || 'c24_' + Math.random().toString(36).substring(7);
     localStorage.setItem('c24_chat_session', chatSessionId);
 
@@ -376,19 +374,32 @@
         const container = document.getElementById('chatbot-container');
         container.innerHTML = `
             <style>
+                /* Posizionamento a sinistra per neuro-tip pollice */
                 #c24-bubble { position:fixed; bottom:25px; left:25px; width:60px; height:60px; border-radius:50%; background:#f97316; box-shadow:0 10px 25px rgba(249,115,22,0.4); cursor:pointer; z-index:9999; display:flex; align-items:center; justify-content:center; border:2px solid white; transition:transform 0.3s; }
                 #c24-bubble:hover { transform:scale(1.1); }
-                #c24-window { position:fixed; bottom:100px; left:25px; width:350px; height:500px; background:white; border-radius:20px; box-shadow:0 15px 50px rgba(0,0,0,0.3); z-index:9999; display:none; flex-direction:column; overflow:hidden; font-family:sans-serif; }
-                .c24-header { background:#f97316; color:white; padding:20px; font-weight:bold; display:flex; justify-content:space-between; align-items:center; }
+                
+                /* Finestra aperta di default */
+                #c24-window { position:fixed; bottom:100px; left:25px; width:350px; height:500px; background:white; border-radius:20px; box-shadow:0 15px 50px rgba(0,0,0,0.3); z-index:9999; display:flex; flex-direction:column; overflow:hidden; font-family:sans-serif; border: 1px solid rgba(0,0,0,0.1); }
+                
+                .c24-header { background:#f97316; color:white; padding:15px 20px; font-weight:bold; display:flex; justify-content:space-between; align-items:center; }
                 .c24-messages { flex:1; padding:15px; overflow-y:auto; background:#f8fafc; display:flex; flex-direction:column; gap:10px; }
-                .c24-msg { padding:10px 14px; border-radius:15px; font-size:14px; max-width:85%; line-height:1.4; }
+                
+                /* Stile messaggi Francesca */
+                .c24-msg { padding:10px 14px; border-radius:15px; font-size:14px; max-width:85%; line-height:1.4; position:relative; }
                 .c24-msg.bot { background:#e2e8f0; color:#1e293b; align-self:flex-start; border-bottom-left-radius:2px; }
                 .c24-msg.user { background:#f97316; color:white; align-self:flex-end; border-bottom-right-radius:2px; }
+                
                 .c24-input-area { padding:15px; border-top:1px solid #e2e8f0; display:flex; gap:10px; background:white; }
                 .c24-input-area input { flex:1; border:none; outline:none; font-size:14px; color:#1e293b; }
                 .c24-input-area button { background:none; border:none; color:#f97316; cursor:pointer; font-weight:bold; }
+                
                 .c24-chips { display:flex; flex-wrap:wrap; gap:5px; padding:0 15px 15px; background:#f8fafc; }
-                .c24-chip { background:white; border:1px solid #f97316; color:#f97316; padding:5px 10px; border-radius:20px; font-size:12px; cursor:pointer; }
+                .c24-chip { background:white; border:1px solid #f97316; color:#f97316; padding:5px 10px; border-radius:20px; font-size:12px; cursor:pointer; transition: 0.2s; }
+                .c24-chip:hover { background:#f97316; color:white; }
+                
+                /* Puntino rosso urgenza neuro-tip */
+                .red-dot { width: 8px; height: 8px; background: #ef4444; border-radius: 50%; display: inline-block; margin-right: 5px; animation: pulse-red 1s infinite; }
+                @keyframes pulse-red { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
             </style>
             
             <div id="c24-bubble">
@@ -397,19 +408,26 @@
             
             <div id="c24-window">
                 <div class="c24-header">
-                    <span>Esperto Concierge24</span>
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <div style="width:30px; height:30px; background:white; border-radius:50%; display:flex; align-items:center; justify-content:center; color:#f97316; font-size:18px;">F</div>
+                        <span>Francesca</span>
+                    </div>
                     <button onclick="toggleC24Chat()" style="background:none; border:none; color:white; font-size:20px; cursor:pointer;">&times;</button>
                 </div>
                 <div id="c24-messages" class="c24-messages">
-                    <div class="c24-msg bot">Ciao! Sono l'esperto di Concierge24. Stai ancora perdendo ore a rispondere alle solite domande degli ospiti?</div>
+                    <div class="c24-msg bot">
+                        Ciao! Sono <b>Francesca</b>. <br><br>
+                        Ti senti schiavo del telefono? Ogni chiamata per una password del Wi-Fi è tempo che togli a te stesso. <br><br>
+                        Posso aiutarti a riprendere il controllo?
+                    </div>
                 </div>
                 <div class="c24-chips">
-                    <div class="c24-chip" onclick="sendC24Msg('Come funziona?')">Come funziona?</div>
-                    <div class="c24-chip" onclick="sendC24Msg('Quanto costa?')">Quanto costa?</div>
-                    <div class="c24-chip" onclick="sendC24Msg('È difficile da configurare?')">È difficile?</div>
+                    <div class="c24-chip" onclick="sendC24Msg('Come puoi aiutarmi?')">Come puoi aiutarmi?</div>
+                    <div class="c24-chip" onclick="sendC24Msg('Cosa perdo se non ti uso?')">Cosa sto perdendo?</div>
+                    <div class="c24-chip" onclick="sendC24Msg('Quanto tempo risparmio?')">Quanto tempo risparmio?</div>
                 </div>
                 <div class="c24-input-area">
-                    <input type="text" id="c24-input" placeholder="Scrivi qui..." onkeypress="if(event.key==='Enter') sendC24Msg()">
+                    <input type="text" id="c24-input" placeholder="Chiedimi qualsiasi cosa..." onkeypress="if(event.key==='Enter') sendC24Msg()">
                     <button onclick="sendC24Msg()">Invia</button>
                 </div>
             </div>
@@ -431,18 +449,21 @@
         input.value = '';
         addC24Msg(text, 'user');
 
-        // Loading
         const loadingId = 'loading-' + Date.now();
         addC24Msg('...', 'bot', loadingId);
 
         try {
+            // Invio messaggio a n8n con sessione
             const res = await fetch(`${CHATBOT_WEBHOOK}?message=${encodeURIComponent(text)}&sessionId=${chatSessionId}`, { method: 'POST' });
             const data = await res.json();
             document.getElementById(loadingId).remove();
-            addC24Msg(data.output || data.response || "Scusami, ho un piccolo problema tecnico. Riprova tra un istante!", 'bot');
+            
+            // n8n deve restituire { "output": "messaggio" } o { "response": "messaggio" }
+            const responseText = data.output || data.response || data.text || "Sto riflettendo sulla risposta migliore...";
+            addC24Msg(responseText, 'bot');
         } catch (e) {
             document.getElementById(loadingId).remove();
-            addC24Msg("Connessione interrotta. Controlla il tuo Wi-Fi!", 'bot');
+            addC24Msg("Scusami, ho un calo di tensione digitale. Riprova?", 'bot');
         }
     }
 
@@ -450,12 +471,13 @@
         const msgDiv = document.createElement('div');
         msgDiv.className = `c24-msg ${sender}`;
         if (id) msgDiv.id = id;
-        msgDiv.innerText = text;
+        msgDiv.innerHTML = text; // Usiamo innerHTML per permettere grassetti o link da n8n
         const chatBox = document.getElementById('c24-messages');
         chatBox.appendChild(msgDiv);
         chatBox.scrollTop = chatBox.scrollHeight;
     }
 
+    // Avvio
     injectChatbot();
 </script>
 </body>
