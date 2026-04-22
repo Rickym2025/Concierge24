@@ -361,6 +361,102 @@
 
         </div>
     </footer>
+<!-- CHATBOT CONCIERGE24 -->
+<div id="chatbot-container"></div>
 
+<script>
+    // Configurazione Webhook n8n (Sostituisci con il tuo URL di n8n)
+    const CHATBOT_WEBHOOK = 'https://n8n.labottegadeldelta.it/webhook/concierge24-chatbot';
+    
+    // Generazione Session ID per memoria conversazione
+    let chatSessionId = localStorage.getItem('c24_chat_session') || 'c24_' + Math.random().toString(36).substring(7);
+    localStorage.setItem('c24_chat_session', chatSessionId);
+
+    function injectChatbot() {
+        const container = document.getElementById('chatbot-container');
+        container.innerHTML = `
+            <style>
+                #c24-bubble { position:fixed; bottom:25px; left:25px; width:60px; height:60px; border-radius:50%; background:#f97316; box-shadow:0 10px 25px rgba(249,115,22,0.4); cursor:pointer; z-index:9999; display:flex; align-items:center; justify-content:center; border:2px solid white; transition:transform 0.3s; }
+                #c24-bubble:hover { transform:scale(1.1); }
+                #c24-window { position:fixed; bottom:100px; left:25px; width:350px; height:500px; background:white; border-radius:20px; box-shadow:0 15px 50px rgba(0,0,0,0.3); z-index:9999; display:none; flex-direction:column; overflow:hidden; font-family:sans-serif; }
+                .c24-header { background:#f97316; color:white; padding:20px; font-weight:bold; display:flex; justify-content:space-between; align-items:center; }
+                .c24-messages { flex:1; padding:15px; overflow-y:auto; background:#f8fafc; display:flex; flex-direction:column; gap:10px; }
+                .c24-msg { padding:10px 14px; border-radius:15px; font-size:14px; max-width:85%; line-height:1.4; }
+                .c24-msg.bot { background:#e2e8f0; color:#1e293b; align-self:flex-start; border-bottom-left-radius:2px; }
+                .c24-msg.user { background:#f97316; color:white; align-self:flex-end; border-bottom-right-radius:2px; }
+                .c24-input-area { padding:15px; border-top:1px solid #e2e8f0; display:flex; gap:10px; background:white; }
+                .c24-input-area input { flex:1; border:none; outline:none; font-size:14px; color:#1e293b; }
+                .c24-input-area button { background:none; border:none; color:#f97316; cursor:pointer; font-weight:bold; }
+                .c24-chips { display:flex; flex-wrap:wrap; gap:5px; padding:0 15px 15px; background:#f8fafc; }
+                .c24-chip { background:white; border:1px solid #f97316; color:#f97316; padding:5px 10px; border-radius:20px; font-size:12px; cursor:pointer; }
+            </style>
+            
+            <div id="c24-bubble">
+                <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            </div>
+            
+            <div id="c24-window">
+                <div class="c24-header">
+                    <span>Esperto Concierge24</span>
+                    <button onclick="toggleC24Chat()" style="background:none; border:none; color:white; font-size:20px; cursor:pointer;">&times;</button>
+                </div>
+                <div id="c24-messages" class="c24-messages">
+                    <div class="c24-msg bot">Ciao! Sono l'esperto di Concierge24. Stai ancora perdendo ore a rispondere alle solite domande degli ospiti?</div>
+                </div>
+                <div class="c24-chips">
+                    <div class="c24-chip" onclick="sendC24Msg('Come funziona?')">Come funziona?</div>
+                    <div class="c24-chip" onclick="sendC24Msg('Quanto costa?')">Quanto costa?</div>
+                    <div class="c24-chip" onclick="sendC24Msg('È difficile da configurare?')">È difficile?</div>
+                </div>
+                <div class="c24-input-area">
+                    <input type="text" id="c24-input" placeholder="Scrivi qui..." onkeypress="if(event.key==='Enter') sendC24Msg()">
+                    <button onclick="sendC24Msg()">Invia</button>
+                </div>
+            </div>
+        `;
+
+        document.getElementById('c24-bubble').onclick = toggleC24Chat;
+    }
+
+    function toggleC24Chat() {
+        const win = document.getElementById('c24-window');
+        win.style.display = (win.style.display === 'flex') ? 'none' : 'flex';
+    }
+
+    async function sendC24Msg(textOverride) {
+        const input = document.getElementById('c24-input');
+        const text = textOverride || input.value;
+        if (!text.trim()) return;
+
+        input.value = '';
+        addC24Msg(text, 'user');
+
+        // Loading
+        const loadingId = 'loading-' + Date.now();
+        addC24Msg('...', 'bot', loadingId);
+
+        try {
+            const res = await fetch(`${CHATBOT_WEBHOOK}?message=${encodeURIComponent(text)}&sessionId=${chatSessionId}`, { method: 'POST' });
+            const data = await res.json();
+            document.getElementById(loadingId).remove();
+            addC24Msg(data.output || data.response || "Scusami, ho un piccolo problema tecnico. Riprova tra un istante!", 'bot');
+        } catch (e) {
+            document.getElementById(loadingId).remove();
+            addC24Msg("Connessione interrotta. Controlla il tuo Wi-Fi!", 'bot');
+        }
+    }
+
+    function addC24Msg(text, sender, id) {
+        const msgDiv = document.createElement('div');
+        msgDiv.className = `c24-msg ${sender}`;
+        if (id) msgDiv.id = id;
+        msgDiv.innerText = text;
+        const chatBox = document.getElementById('c24-messages');
+        chatBox.appendChild(msgDiv);
+        chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    injectChatbot();
+</script>
 </body>
 </html>
