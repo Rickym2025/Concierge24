@@ -471,7 +471,15 @@
         const msgDiv = document.createElement('div');
         msgDiv.className = `c24-msg ${sender}`;
         if (id) msgDiv.id = id;
-        msgDiv.innerHTML = text; // Usiamo innerHTML per permettere grassetti o link da n8n
+
+        // Trasforma il grassetto Markdown **testo** in HTML <b>testo</b>
+        // e i ritorni a capo in <br>
+        let formattedText = text
+            .replace(/\*\*(.*?)\*\*/g, '<b>$1</b>') 
+            .replace(/\n/g, '<br>');
+
+        msgDiv.innerHTML = formattedText; // Usiamo innerHTML invece di innerText
+        
         const chatBox = document.getElementById('c24-messages');
         chatBox.appendChild(msgDiv);
         chatBox.scrollTop = chatBox.scrollHeight;
